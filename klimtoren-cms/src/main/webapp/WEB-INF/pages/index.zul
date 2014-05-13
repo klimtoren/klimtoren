@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<zk xmlns="http://www.zkoss.org/2005/zul" xmlns:n="native">
+    <window title="test" border="normal">
+        <n:h1>Hello world! too</n:h1>
+        <div>ongelooflijk echt, maar echt echt</div>
+    </window>
+</zk>
