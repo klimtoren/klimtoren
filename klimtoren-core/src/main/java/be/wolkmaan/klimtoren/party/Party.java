@@ -5,7 +5,6 @@
  */
 package be.wolkmaan.klimtoren.party;
 
-import be.wolkmaan.klimtoren.party.FullName;
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.shared.EntitySupport;
 import java.util.ArrayList;
