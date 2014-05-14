@@ -5,9 +5,11 @@
  */
 package be.wolkmaan.klimtoren.application;
 
+import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.kind.KindRepository;
+import be.wolkmaan.klimtoren.kind.Kinds;
+import be.wolkmaan.klimtoren.party.Authentication;
 import be.wolkmaan.klimtoren.party.FullName;
-import be.wolkmaan.klimtoren.party.Membership;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Party;
 import be.wolkmaan.klimtoren.party.PartyRepository;
@@ -15,12 +17,16 @@ import be.wolkmaan.klimtoren.party.Person;
 import com.google.common.base.Strings;
 import java.util.Date;
 import javax.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author karl
  */
+@Service("partyService")
+@Slf4j
 public class PartyServiceImpl implements PartyService {
 
     @Autowired
@@ -31,40 +37,90 @@ public class PartyServiceImpl implements PartyService {
     @Override
     @Transactional
     public Person registerNewPerson(String givenName, String surName, String middleName) {
+
+        Person person = createPerson(givenName, surName, middleName);
+        partyRepository.store(person);
+        //TODO: p.setKind(Kinds.PERSON);
+        return person;
+    }
+
+    @Transactional
+    @Override
+    public Person registerNewUser(String givenName, String surName, String middleName,
+            String userName, String password) throws UserAlreadyExistsException {
+        Person person = createPerson(givenName, surName, middleName);
+
+        Person p = partyRepository.findByUsername(userName);
+        if (p != null) {
+            throw new UserAlreadyExistsException();
+        }
+
+        Authentication auth = new Authentication();
+        auth.setForPerson(person);
+        auth.setPassword(encryptPassword(password));
+        auth.setUsername(userName);
+        auth.setGranted(true);
+        auth.setLastAttemptFailureTime(new Date());
+        auth.setLastLogin(new Date());
+        auth.setEnableAutoUnlock(true);
+        auth.setLocked(false);
+        person.setAuthentication(auth);
+
+        partyRepository.store(person);
+        //TODO: p.setKind(Kinds.PERSON);
+        log.debug(person.getAuthentication().toString());
+        return person;
+    }
+
+    @Override
+    public Organization registerNewOrganization(String name) {
+        Organization org = createOrganization(name);
+        partyRepository.store(org);
+        return org;
+    }
+
+    @Override
+    public Organization registerNewOrganization(String name, Party parent) {
+        Organization org = createOrganization(name);
+        //TODO !!!
+        //Add Party2PartyRelationship
+        //RELATION_KIND: ORGANIZATION PARENT _ CHILD ??
+        partyRepository.store(org);
+        return org;
+    }
+
+    private Person createPerson(String givenName, String surName, String middleName) {
         Date registerDate = new Date();
-        String displayName = givenName + 
-                (Strings.isNullOrEmpty(middleName) ? " " : " " + middleName + " ") + 
-                surName;
+        String displayName = givenName
+                + (Strings.isNullOrEmpty(middleName) ? " " : " " + middleName + " ")
+                + surName;
         Person p = new Person();
         p.setDisplayName(displayName);
-        
+        p.setPrimaryKind(Kind.PERSON);
+
         FullName fn = new FullName();
         fn.setGivenName(givenName);
         fn.setSurName(surName);
         fn.setMiddleName(middleName);
         fn.setStartDate(registerDate);
-        
+
         p.addFullName(fn);
-        
-        fn.setForParty(p);
-        partyRepository.store(p);
-        //TODO: p.setKind(Kinds.PERSON);
-        return null;
+        return p;
     }
 
-    @Override
-    public Membership registerNewUser(String givenName, String surName, String middleName, String password) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private Organization createOrganization(String name) {
+        Organization org = new Organization();
+        org.setDisplayName(name);
+        org.setPrimaryKind(Kind.ORGANIZATION);
+
+        return org;
     }
 
-    @Override
-    public Organization registerNewOrganization(String name) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private String encryptPassword(String password) {
+        return encryptPassword(password, null);
     }
 
-    @Override
-    public Organization registerNewOrganization(String name, Party parent) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private String encryptPassword(String password, String salt) {
+        return password + "-" + salt; //TODO create algorithm
     }
-
 }

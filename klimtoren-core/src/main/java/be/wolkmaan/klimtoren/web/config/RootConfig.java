@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package be.wolkmaan.klimtoren.web.config;
 
 import org.springframework.context.annotation.ComponentScan;
@@ -15,6 +14,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan(basePackages={"be.wolkmaan.klimtoren"})
-class RootConfig {
+public class RootConfig {
     
 }

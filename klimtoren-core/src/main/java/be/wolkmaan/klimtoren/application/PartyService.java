@@ -6,7 +6,7 @@
 
 package be.wolkmaan.klimtoren.application;
 
-import be.wolkmaan.klimtoren.party.Membership;
+import be.wolkmaan.klimtoren.party.Authentication;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Party;
 import be.wolkmaan.klimtoren.party.Person;
@@ -25,16 +25,20 @@ public interface PartyService {
      */
     public Person registerNewPerson(String givenName, String surName, String middleName);
     
+    
     /**
      * Adds a new person and registers an initial password.
-     * A default profile is set.
      * @param givenName
      * @param surName
      * @param middleName
+     * @param userName
      * @param password
      * @return 
+     * @throws be.wolkmaan.klimtoren.application.UserAlreadyExistsException 
      */
-    public Membership registerNewUser(String givenName, String surName, String middleName, String password);
+    public Person registerNewUser(String givenName, String surName, 
+            String middleName, String userName, String password) throws UserAlreadyExistsException;
+    
     
     /**
      * Adds a new organization.

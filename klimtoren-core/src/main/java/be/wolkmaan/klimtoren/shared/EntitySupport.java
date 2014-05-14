@@ -14,6 +14,7 @@ import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.codehaus.jackson.map.annotate.JsonView;
@@ -25,6 +26,7 @@ import org.codehaus.jackson.map.annotate.JsonView;
  * @param <ID>
  */
 @MappedSuperclass
+@EqualsAndHashCode(exclude={"id"})
 public class EntitySupport<T extends Entity, ID extends Serializable> implements Entity<T, ID> {
     private static final Logger LOG = Logger.getLogger(EntitySupport.class.getName());
 
@@ -66,16 +68,16 @@ public class EntitySupport<T extends Entity, ID extends Serializable> implements
         return null;
     }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(this == obj) return true;
-        if(obj == null || getClass() != obj.getClass()) return false;
-        
-        return this.sameIdentityAs((T) obj);
-    }
+//    @Override
+//    public int hashCode() {
+//        return id.hashCode();
+//    }
+//
+//    @Override
+//    public boolean equals(Object obj) {
+//        if(this == obj) return true;
+//        if(obj == null || getClass() != obj.getClass()) return false;
+//        
+//        return this.sameIdentityAs((T) obj);
+//    }
 }

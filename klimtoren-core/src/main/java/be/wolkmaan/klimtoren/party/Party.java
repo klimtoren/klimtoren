@@ -19,6 +19,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 /**
  *
@@ -44,6 +46,7 @@ public class Party extends EntitySupport<Party, Long> {
     private Kind primaryKind;
 
     @OneToMany(mappedBy = "forParty")
+    @Cascade({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
     private List<FullName> names;
 
     /*------------------------------

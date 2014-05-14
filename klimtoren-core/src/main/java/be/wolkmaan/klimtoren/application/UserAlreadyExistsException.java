@@ -4,14 +4,15 @@
  * and open the template in the editor.
  */
 
-package be.wolkmaan.klimtoren.party;
-
-import be.wolkmaan.klimtoren.persistence.Repository;
+package be.wolkmaan.klimtoren.application;
 
 /**
  *
  * @author karl
  */
-public interface PartyRepository extends Repository<Party> {
-    public Person findByUsername(String username);
+public class UserAlreadyExistsException extends Exception {
+
+    public UserAlreadyExistsException() {
+    }
+    
 }
