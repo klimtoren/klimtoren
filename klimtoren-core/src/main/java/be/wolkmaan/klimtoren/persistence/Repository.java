@@ -6,10 +6,13 @@
 
 package be.wolkmaan.klimtoren.persistence;
 
+import java.io.Serializable;
+
 /**
  *
  * @author karl
  */
 public interface Repository<T> {
-    public void store(T entity);
+    public void store(Object entity);
+    public T get(Serializable id);
 }
