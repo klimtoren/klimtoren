@@ -14,4 +14,7 @@ import be.wolkmaan.klimtoren.persistence.Repository;
  */
 public interface PartyRepository extends Repository<Party> {
     public Person findByUsername(String username);
+
+    public PartyToPartyRelationship get(Long id);
+
 }
