@@ -6,6 +6,7 @@
 
 package be.wolkmaan.klimtoren.application;
 
+import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Person;
 import be.wolkmaan.klimtoren.web.config.PersistenceConfig;
 import be.wolkmaan.klimtoren.web.config.RootConfig;
@@ -13,7 +14,6 @@ import be.wolkmaan.klimtoren.web.config.WebMvcConfig;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -52,5 +52,11 @@ public class PartyServiceTest {
         } catch (UserAlreadyExistsException ex) {
             Logger.getLogger(PartyServiceTest.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    @Test
+    public void testRegisterOrganization() {
+        Organization org = partyService.registerNewOrganization("VBS De Klimtoren");
+        assertNotNull(org.getId());
+        assertTrue(org.getId() != null && org.getId() > 0);
     }
 }
