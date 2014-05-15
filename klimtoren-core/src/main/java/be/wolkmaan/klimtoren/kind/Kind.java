@@ -11,6 +11,15 @@ package be.wolkmaan.klimtoren.kind;
  * @author karl
  */
 public enum Kind {
+    /* PARTY RELATED */
     PERSON,
-    ORGANIZATION;
+    ORGANIZATION, 
+    
+    /* WORK RELATED */
+    EMPLOYEE,
+    INTERIM,
+    
+    /* PRIVATE RELATED */
+    WIFE,
+    HUSBAND
 }
