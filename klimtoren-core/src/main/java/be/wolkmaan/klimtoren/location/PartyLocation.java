@@ -41,15 +41,11 @@ public class PartyLocation extends EntitySupport<PartyLocation, Long> {
     @JoinColumn(name="party")
     private Party party;
     
-    @ManyToOne
-    @JoinColumn(name="kind")
     private Kind kind;
     
     @ManyToOne
     @JoinColumn(name="role")
     private Role role;
     
-    @ManyToOne
-    @JoinColumn(name="partyRoleKind")
     private Kind partyRoleKind;
 }
