@@ -38,7 +38,5 @@ public class Role extends EntitySupport<Role, Long> {
     @JoinColumn(name="party")
     private Party party;
     
-    @ManyToOne
-    @JoinColumn(name="kind")
     private Kind kind;
 }
