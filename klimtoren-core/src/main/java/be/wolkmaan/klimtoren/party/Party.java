@@ -39,10 +39,7 @@ public class Party extends EntitySupport<Party, Long> {
     private String name;
     private String displayName;
 
-    @ManyToOne
     private Kind kind;
-
-    @ManyToOne
     private Kind primaryKind;
 
     @OneToMany(mappedBy = "forParty")
