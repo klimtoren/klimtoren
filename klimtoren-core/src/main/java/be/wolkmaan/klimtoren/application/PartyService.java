@@ -54,7 +54,7 @@ public interface PartyService {
      * @param parent
      * @return 
      */
-    public Organization registerNewOrganization(String name, Party parent);
+    public Organization registerNewOrganization(String name, Party parent, Kind kindOfParent);
     
     /**
      * Adds new relation between two parties

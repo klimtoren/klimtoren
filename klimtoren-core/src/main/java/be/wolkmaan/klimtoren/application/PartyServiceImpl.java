@@ -85,12 +85,10 @@ public class PartyServiceImpl implements PartyService {
 
     @Transactional
     @Override
-    public Organization registerNewOrganization(String name, Party parent) {
+    public Organization registerNewOrganization(String name, Party parent, Kind kindOfParent) {
         Organization org = createOrganization(name);
-        //TODO !!!
-        //Add Party2PartyRelationship
-        //RELATION_KIND: ORGANIZATION PARENT _ CHILD ??
         partyRepository.store(org);
+        registerRelation(org, parent, kindOfParent);
         return org;
     }
     
