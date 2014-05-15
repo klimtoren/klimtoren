@@ -42,7 +42,5 @@ public class PartyToPartyRelationship extends EntitySupport<PartyToPartyRelation
 	@JoinColumn(name="referencedParty")
 	private Party referencedParty;
 
-	@ManyToOne
-	@JoinColumn(name="kind")
 	private Kind kind;
 }
