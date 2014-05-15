@@ -7,7 +7,6 @@ package be.wolkmaan.klimtoren.application;
 
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.kind.KindRepository;
-import be.wolkmaan.klimtoren.kind.Kinds;
 import be.wolkmaan.klimtoren.party.Authentication;
 import be.wolkmaan.klimtoren.party.FullName;
 import be.wolkmaan.klimtoren.party.Organization;
@@ -72,6 +71,7 @@ public class PartyServiceImpl implements PartyService {
         return person;
     }
 
+    @Transactional
     @Override
     public Organization registerNewOrganization(String name) {
         Organization org = createOrganization(name);
@@ -79,6 +79,7 @@ public class PartyServiceImpl implements PartyService {
         return org;
     }
 
+    @Transactional
     @Override
     public Organization registerNewOrganization(String name, Party parent) {
         Organization org = createOrganization(name);
