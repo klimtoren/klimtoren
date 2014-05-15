@@ -39,8 +39,6 @@ public class Resource extends EntitySupport<Resource, Long> {
     @JoinColumn(name="forParty")
     private Party forParty;
     
-    @ManyToOne
-    @JoinColumn(name="kind")
     private Kind kind;
     
     @ManyToOne
