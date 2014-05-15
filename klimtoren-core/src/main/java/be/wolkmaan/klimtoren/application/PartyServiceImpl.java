@@ -12,6 +12,7 @@ import be.wolkmaan.klimtoren.party.FullName;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Party;
 import be.wolkmaan.klimtoren.party.PartyRepository;
+import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
 import com.google.common.base.Strings;
 import java.util.Date;
@@ -33,6 +34,9 @@ public class PartyServiceImpl implements PartyService {
     @Autowired
     private KindRepository kindRepository;
 
+    /* -----------------------------------------
+    |   Transactions
+    ----------------------------------------- */
     @Override
     @Transactional
     public Person registerNewPerson(String givenName, String surName, String middleName) {
@@ -89,7 +93,42 @@ public class PartyServiceImpl implements PartyService {
         partyRepository.store(org);
         return org;
     }
+    
+    @Transactional
+    @Override
+    public PartyToPartyRelationship registerRelation(Party context, Party reference, Kind kind) {
+        PartyToPartyRelationship p2p = new PartyToPartyRelationship();
+        p2p.setStart(new Date());
+        p2p.setKind(kind);
+        p2p.setReferencedParty(reference);
+        p2p.setContextParty(context);
+        
+        partyRepository.store(p2p);
+        return p2p;
+    }
+    
+    @Transactional
+    @Override
+    public PartyToPartyRelationship stopRelation(PartyToPartyRelationship p2p) {
+        p2p.setEnd(new Date());
+        partyRepository.store(p2p);
+        return p2p;
+    }
+    
+    @Transactional
+    @Override
+    public PartyToPartyRelationship stopRelation(Long id) {
+        PartyToPartyRelationship p2p = partyRepository.get(id);
+        if(p2p!=null) 
+            return this.stopRelation(p2p);
+        else
+            return null;
+    }
 
+    
+    /* -----------------------------------------
+    |   Private methods
+    ----------------------------------------- */
     private Person createPerson(String givenName, String surName, String middleName) {
         Date registerDate = new Date();
         String displayName = givenName
