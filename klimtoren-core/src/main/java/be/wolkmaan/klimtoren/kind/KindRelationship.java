@@ -30,16 +30,8 @@ public class KindRelationship extends EntitySupport<KindRelationship, Long> {
     private Date start;
     private Date end;
     
-    @ManyToOne
-    @JoinColumn(name="kind")
     private Kind kind;
-    
-    @ManyToOne
-    @JoinColumn(name="source")
     private Kind source;
-    
-    @ManyToOne
-    @JoinColumn(name="target")
     private Kind target;
     
     @ManyToOne
