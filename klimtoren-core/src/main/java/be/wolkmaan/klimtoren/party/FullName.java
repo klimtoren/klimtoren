@@ -67,8 +67,6 @@ public class FullName extends EntitySupport<FullName, Long> {
     @Setter
     private String pronunciation;
 
-    @NaturalId
-    @ManyToOne
     @Getter
     @Setter
     private Kind kind;
