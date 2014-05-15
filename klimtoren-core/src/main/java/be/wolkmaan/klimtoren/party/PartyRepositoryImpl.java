@@ -6,6 +6,7 @@
 package be.wolkmaan.klimtoren.party;
 
 import be.wolkmaan.klimtoren.persistence.HibernateRepository;
+import java.io.Serializable;
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
@@ -29,4 +30,8 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
                     .uniqueResult();
     }
 
+    @Override
+    public Party remove(Serializable id) {
+        throw new UnsupportedOperationException("You can't remove a party. Stop relations and end fullnames instead.");
+    }
 }

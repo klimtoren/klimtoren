@@ -7,6 +7,7 @@ package be.wolkmaan.klimtoren.persistence;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
+import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,18 @@ public abstract class HibernateRepository<T> implements Repository<T> {
     public T get(Serializable id) {
         return (T) getSession().get(genericClass(), id);
     }
-    
+    @Override
+    public List<T> list() {
+        return (List<T>)getSession().createCriteria(genericClass())
+                .list();
+    }
+    @Override
+    public T remove(Serializable id) {
+        T entity = get(id);
+        if(entity != null)
+            getSession().delete(entity);
+        return entity;
+    }
     
     private Class<T> genericClass() {
         ParameterizedType parameterizedType = (ParameterizedType) getClass()

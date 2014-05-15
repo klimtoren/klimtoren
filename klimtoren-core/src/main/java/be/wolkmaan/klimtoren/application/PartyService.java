@@ -7,7 +7,6 @@
 package be.wolkmaan.klimtoren.application;
 
 import be.wolkmaan.klimtoren.kind.Kind;
-import be.wolkmaan.klimtoren.party.Authentication;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Party;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;

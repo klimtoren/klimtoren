@@ -7,6 +7,7 @@
 package be.wolkmaan.klimtoren.persistence;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  *
@@ -15,4 +16,6 @@ import java.io.Serializable;
 public interface Repository<T> {
     public void store(Object entity);
     public T get(Serializable id);
+    public List<T> list();
+    public T remove(Serializable id);
 }
