@@ -187,7 +187,7 @@ public class StandardByteDigester implements ByteDigester {
     }
 
     public boolean isInitialized() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.initialized;
     }
 
     public synchronized void initialize() {

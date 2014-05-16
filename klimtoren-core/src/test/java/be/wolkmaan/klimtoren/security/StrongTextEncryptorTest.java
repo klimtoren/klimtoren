@@ -5,8 +5,13 @@
  */
 package be.wolkmaan.klimtoren.security;
 
+import be.wolkmaan.klimtoren.security.digest.StandardStringDigester;
 import be.wolkmaan.klimtoren.security.encryption.pbe.StandardPBEStringEncryptor;
+import be.wolkmaan.klimtoren.security.util.StrongPasswordEncryptor;
 import lombok.extern.slf4j.Slf4j;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,29 +24,25 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @Slf4j
 public class StrongTextEncryptorTest {
 
-    private StandardPBEStringEncryptor encryptor;
+    
 
     @Before
     public void setUp() {
-        this.encryptor = new StandardPBEStringEncryptor();
-        this.encryptor.setAlgorithm("PBEWithMD5AndDES");
+        
     }
 
     @Test
     public void testEncrypt() {
-        String pwd1 = "pass";
-        String pwd2 = "pass";
-        String pwd3 = "other";
-
-        this.encryptor.setPassword("password");
-        String enc1 = this.encryptor.encrypt(pwd1);
-        log.debug(enc1);
-        String enc2 = this.encryptor.encrypt(pwd2); //TODO 
-        log.debug(enc2);
-        String enc3 = this.encryptor.encrypt(pwd2);
-        log.debug(enc3);
-        
-        String p1 = this.encryptor.decrypt(enc1);
-        log.debug(p1);
+       String pass1 = "pass";
+       String pass2 = "pass";
+       String pass3 = "pass2";
+       
+       StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
+       String enc1 = encryptor.encryptPassword(pass1);
+       String enc2 = encryptor.encryptPassword(pass2);
+       String enc3 = encryptor.encryptPassword(pass3);
+       
+       assertTrue(encryptor.checkPassword(pass1, enc2));
+       assertFalse(encryptor.checkPassword(pass1, enc3));
     }
 }
