@@ -8,6 +8,7 @@ package be.wolkmaan.klimtoren.party;
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.shared.EntitySupport;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
@@ -42,6 +43,10 @@ public class Party extends EntitySupport<Party, Long> {
     private Kind primaryKind;
 
     @OneToMany(mappedBy = "forParty")
+    @Cascade(CascadeType.ALL)
+    private List<PartyAttribute> attributes;
+
+    @OneToMany(mappedBy = "forParty")
     @Cascade({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
     private List<FullName> names;
 
@@ -55,7 +60,7 @@ public class Party extends EntitySupport<Party, Long> {
         fullName.setForParty(this);
         names.add(fullName);
     }
-    
+
     /*------------------------------
      | Properties
      -----------------------------*/
@@ -65,5 +70,30 @@ public class Party extends EntitySupport<Party, Long> {
         } else {
             return null;
         }
+    }
+
+    public PartyAttribute getAttribute(String key) {
+        for (PartyAttribute pa : this.getAttributes()) {
+            if (pa.getName().toUpperCase().equals(key.toUpperCase())) {
+                return pa;
+            }
+        }
+        return null;
+    }
+    public void setAttribute(String key, String value) {
+        PartyAttribute pa = getAttribute(key);
+        if(pa == null) {
+            pa = new PartyAttribute();
+            pa.setName(key);
+            pa.setValue(value);
+            pa.setStart(new Date());
+            pa.setForParty(this);
+        } else {
+            pa.setValue(value);
+        }
+        if(this.attributes == null) {
+            this.attributes = new ArrayList<>();
+        }
+        this.attributes.add(pa);
     }
 }
