@@ -38,8 +38,5 @@ public interface SchoolService {
     public boolean connectParentsToStudent(Person mother, Person father, Person student, Kind parentsRelation);
     public boolean setParentsRelation(Person mother, Person father, Kind parentsRelation);
     
-    //TODO: FOR TEST SCOPE ONLY
-    //remove afterwards
-    public String generatePassword(String givenName, String surName);
-    public String generateUsername(String givenName, String surName, String domainName);
+    
 }
