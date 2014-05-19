@@ -7,6 +7,9 @@ package be.wolkmaan.klimtoren.application;
 
 import be.wolkmaan.klimtoren.exceptions.NoDomainNameFoundException;
 import be.wolkmaan.klimtoren.kind.Kind;
+import be.wolkmaan.klimtoren.location.LocationRepository;
+import be.wolkmaan.klimtoren.location.Mailbox;
+import be.wolkmaan.klimtoren.location.PartyLocation;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyRepository;
@@ -35,6 +38,8 @@ public class SchoolServiceImpl implements SchoolService {
     private PartyService partyService;
     @Autowired
     private PartyRepository partyRepository;
+    @Autowired
+    private LocationRepository locationRepository;
 
     @Override
     @Transactional
@@ -94,6 +99,32 @@ public class SchoolServiceImpl implements SchoolService {
     }
 
     @Override
+    public Organization registerNewSchool(String schoolName, String descriptiveInformation, Mailbox address) {
+        Organization school = new Organization();
+        school.setDisplayName(schoolName);
+        school.setPrimaryKind(Kind.SCHOOL);
+        school.setDescriptiveInformation(descriptiveInformation);
+        
+        Mailbox inDB = locationRepository.findByMailbox(address);
+        if(inDB != null) {
+            address = inDB;
+        }
+        PartyLocation location = new PartyLocation();
+        location.setAtLocation(address);
+        location.setParty(school);
+        location.setStart(new Date());
+        location.setContactPoint(true);
+        //TODO: check the other setters role partyrole , ...
+        partyRepository.store(school);
+        return school;
+    }
+
+    @Override
+    public Organization registerNewGroup(String groupName, String descriptiveInformation, Organization parent, PartyAttribute... details) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
     public boolean addStudentToGroup(Person student, Organization group) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -147,7 +178,10 @@ public class SchoolServiceImpl implements SchoolService {
     public boolean setParentsRelation(Person mother, Person father, Kind parentsRelation) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
+    /* ----------------------------------------
+    |  PRIVATE METHODS 
+    ---------------------------------------- */
     /**
      * Generates a random password, based on the name.
      *
@@ -198,4 +232,6 @@ public class SchoolServiceImpl implements SchoolService {
         }
         return username;
     }
+
+    
 }

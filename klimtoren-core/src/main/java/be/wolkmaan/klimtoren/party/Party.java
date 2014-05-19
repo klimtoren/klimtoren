@@ -6,6 +6,8 @@
 package be.wolkmaan.klimtoren.party;
 
 import be.wolkmaan.klimtoren.kind.Kind;
+import be.wolkmaan.klimtoren.location.Location;
+import be.wolkmaan.klimtoren.location.PartyLocation;
 import be.wolkmaan.klimtoren.shared.EntitySupport;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,6 +51,10 @@ public class Party extends EntitySupport<Party, Long> {
     @OneToMany(mappedBy = "forParty")
     @Cascade({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
     private List<FullName> names;
+    
+    @OneToMany(mappedBy="party")
+    @Cascade({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
+    private List<PartyLocation> locations;
 
     /*------------------------------
      | Methods
@@ -59,6 +65,13 @@ public class Party extends EntitySupport<Party, Long> {
         }
         fullName.setForParty(this);
         names.add(fullName);
+    }
+    public void addLocation(PartyLocation location) {
+        if(location == null) {
+            locations = new ArrayList<>();
+        }
+        location.setParty(this);
+        locations.add(location);
     }
 
     /*------------------------------
