@@ -21,9 +21,19 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
     public Person findByUsername(String username) {
         Criteria crit = getSession().createCriteria(Person.class)
                 .createAlias("authentication", "auth", JoinType.LEFT_OUTER_JOIN)
-                .add(Restrictions.eq("auth.username", username));
+                .add(Restrictions.eq("auth.username", username).ignoreCase());
 
         return (Person) crit.uniqueResult();
+    }
+
+    @Override
+    public Organization findOrganization(String name, Organization parent, Kind relationKind) {
+        Criteria crit = getSession().createCriteria(PartyToPartyRelationship.class)
+                .add(Restrictions.eq("context.displayName", name).ignoreCase())
+                .add(Restrictions.eq("reference", parent))
+                .add(Restrictions.eq("kind", relationKind));
+        
+        return (Organization) crit.uniqueResult();
     }
 
     @Override
@@ -54,30 +64,32 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
     @Override
     public List<PartyToPartyRelationship> findRelation(Party context, Party reference, Kind kind, boolean bidirectional) {
         Criteria crit = null;
-        if(bidirectional)
-           crit = createBidirectional(context, reference);
-        else
+        if (bidirectional) {
+            crit = createBidirectional(context, reference);
+        } else {
             crit = createUnidirectional(context, reference);
-        
+        }
+
         crit.add(Restrictions.eq("kind", kind.name()));
-        
-        return (List<PartyToPartyRelationship>)crit.list();
+
+        return (List<PartyToPartyRelationship>) crit.list();
     }
 
     @Override
     public List<PartyToPartyRelationship> findRelation(Party context, Party reference, boolean bidirectional) {
-         Criteria crit = null;
-        if(bidirectional)
-           crit = createBidirectional(context, reference);
-        else
+        Criteria crit = null;
+        if (bidirectional) {
+            crit = createBidirectional(context, reference);
+        } else {
             crit = createUnidirectional(context, reference);
-        
-        return (List<PartyToPartyRelationship>)crit.list();
+        }
+
+        return (List<PartyToPartyRelationship>) crit.list();
     }
-    
+
     /* ---------------------------------
-    |  PRIVATE METHODS 
-    --------------------------------- */
+     |  PRIVATE METHODS 
+     --------------------------------- */
     private Criteria createBidirectional(Party context, Party reference) {
         Criteria crit = getSession().createCriteria(PartyToPartyRelationship.class)
                 .add(Restrictions.or(

@@ -28,7 +28,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Person extends Party {
-
+    public enum Gender {
+        MALE,
+        FEMALE,
+        OTHER
+    }
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "forPerson", cascade = CascadeType.ALL)
-    public Authentication authentication;
+    private Authentication authentication;
+    
+    private Gender gender;
 }

@@ -18,6 +18,7 @@ import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyRepository;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
+import be.wolkmaan.klimtoren.party.Person.Gender;
 import be.wolkmaan.klimtoren.security.util.StrongPasswordEncryptor;
 import be.wolkmaan.klimtoren.shared.CommonDateUtils;
 import com.google.common.base.Strings;
@@ -46,9 +47,9 @@ public class PartyServiceImpl implements PartyService {
      ----------------------------------------- */
     @Override
     @Transactional
-    public Person registerNewPerson(String givenName, String surName, String middleName) {
+    public Person registerNewPerson(String givenName, String surName, String middleName, Gender gender) {
 
-        Person person = createPerson(givenName, surName, middleName);
+        Person person = createPerson(givenName, surName, middleName, gender);
         partyRepository.store(person);
         //TODO: p.setKind(Kinds.PERSON);
         return person;
@@ -56,9 +57,9 @@ public class PartyServiceImpl implements PartyService {
 
     @Transactional
     @Override
-    public Person registerNewUser(String givenName, String surName, String middleName,
+    public Person registerNewUser(String givenName, String surName, String middleName, Gender gender,
             String userName, String password) throws UserAlreadyExistsException {
-        Person person = createPerson(givenName, surName, middleName);
+        Person person = createPerson(givenName, surName, middleName, gender);
 
         Person p = partyRepository.findByUsername(userName);
         if (p != null) {
@@ -102,14 +103,33 @@ public class PartyServiceImpl implements PartyService {
     @Transactional
     @Override
     public PartyToPartyRelationship registerRelation(Party context, Party reference, Kind kind) {
+        return registerRelation(context, reference, kind, new Date());
+    }
+
+    @Transactional
+    @Override
+    public PartyToPartyRelationship registerRelation(Party context, Party reference, Kind kind, Date start) {
         PartyToPartyRelationship p2p = new PartyToPartyRelationship();
-        p2p.setStart(new Date());
+        p2p.setStart(start);
         p2p.setKind(kind);
         p2p.setReferencedParty(reference);
         p2p.setContextParty(context);
 
         partyRepository.store(p2p);
         return p2p;
+    }
+
+    @Transactional
+    @Override
+    public void registerRelation(Party context, Party reference, Kind kind, Kind reverseKind) {
+        registerRelation(context, reference, kind, reverseKind, new Date());
+    }
+
+    @Transactional
+    @Override
+    public void registerRelation(Party context, Party reference, Kind kind, Kind reverseKind, Date start) {
+        registerRelation(context, reference, kind, start);
+        registerRelation(reference, context, reverseKind, start);
     }
 
     @Transactional
@@ -174,11 +194,11 @@ public class PartyServiceImpl implements PartyService {
             return false;
         }
     }
-     
+
     /* -----------------------------------------
      |   Private methods
      ----------------------------------------- */
-    private Person createPerson(String givenName, String surName, String middleName) {
+    private Person createPerson(String givenName, String surName, String middleName, Gender gender) {
         Date registerDate = new Date();
         String displayName = givenName
                 + (Strings.isNullOrEmpty(middleName) ? " " : " " + middleName + " ")
@@ -186,7 +206,8 @@ public class PartyServiceImpl implements PartyService {
         Person p = new Person();
         p.setDisplayName(displayName);
         p.setPrimaryKind(Kind.PERSON);
-
+        p.setGender(gender);
+        
         FullName fn = new FullName();
         fn.setGivenName(givenName);
         fn.setSurName(surName);
@@ -219,4 +240,5 @@ public class PartyServiceImpl implements PartyService {
         partyRepository.store(party);
         return party;
     }
+
 }

@@ -28,11 +28,15 @@ public enum Kind {
     ORGANIZATION,
     EMPLOYEE,
     INTERIM,
+    DEPARTMENT,
     
     //SCHOOL SPECIFIC
     SCHOOL,
+    PRINCIPAL_SCHOOL,
+    CLASSGROUP,        
     DIRECTOR,
     TEACHER,
+    TITULAR,
     STUDENT,
     
     //RESOURCES
@@ -50,5 +54,14 @@ public enum Kind {
     
     //DATATYPES
     STRING,
-    ENCRYPTED_TEXT;
+    ENCRYPTED_TEXT, 
+    
+    //CONTACT TYPES
+    HOME,
+    WORK,
+    MOBILE,
+    GENERAL,
+    FAX_WORK,
+    FAX_PRIVATE,
+    CUSTOM;
 }
