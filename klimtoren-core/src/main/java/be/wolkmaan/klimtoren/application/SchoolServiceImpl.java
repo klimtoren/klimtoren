@@ -7,17 +7,18 @@ package be.wolkmaan.klimtoren.application;
 
 import be.wolkmaan.klimtoren.exceptions.NoDomainNameFoundException;
 import be.wolkmaan.klimtoren.kind.Kind;
-import be.wolkmaan.klimtoren.party.Authentication;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyRepository;
 import be.wolkmaan.klimtoren.party.Person;
+import be.wolkmaan.klimtoren.security.encryption.pbe.StandardPBEStringEncryptor;
 import be.wolkmaan.klimtoren.shared.CommonUtils;
 import com.google.common.collect.Lists;
-import java.text.Normalizer;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import javax.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
  *
  * @author karl
  */
+@Slf4j
 @Service("schoolService")
 public class SchoolServiceImpl implements SchoolService {
 
@@ -34,20 +36,43 @@ public class SchoolServiceImpl implements SchoolService {
     private PartyRepository partyRepository;
 
     @Override
+    @Transactional
     public Person registerNewStudent(String givenName, String surName, String middleName,
             Organization school, PartyAttribute... details) throws NoDomainNameFoundException {
-        String domainName = school.getAttribute("domainName").getValue();
+        
+        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+        encryptor.setPassword("wolkmaan");
+        
+        PartyAttribute domainName = school.getAttribute("domainName");
         if (domainName == null) {
             throw new NoDomainNameFoundException();
         }
         String autoPassword = generatePassword(givenName, surName);
-        Person student = partyService.registerNewPerson(givenName, surName, middleName);
-        student = partyService.addPersonDetails(student, Lists.newArrayList(details));
-
+        String username = generateUsername(givenName, surName, domainName.getValue());
+        
+        Person student = null;
+        try {
+            student = partyService.registerNewUser(givenName, surName, middleName, username, autoPassword);
+            
+            List<PartyAttribute> attributes = Lists.newArrayList(details);
+            
+            PartyAttribute initialPwd = new PartyAttribute("initialPwd", encryptor.encrypt(autoPassword), Kind.ENCRYPTED_TEXT);
+            attributes.add(initialPwd);
+            
+            partyService.addPartyDetails(student, attributes);
+            partyService.registerRelation(student, school, Kind.STUDENT);
+            partyService.registerRelation(school, student, Kind.SCHOOL);
+            
+        } catch(UserAlreadyExistsException ex) {
+            //this error can't be called, 
+            //the function generateUsername auto-generates an unique username.
+            //therefor this dump to log (you never know)
+            log.error(ex.getMessage());   
+        }
+        
         //AUTO-GENERATE: password how to return to provide this information
         //TRANSIENT FIELD IN PERSON OR IN AUTHENTICATION?
-        return null;
-
+        return student;
     }
 
     @Override
