@@ -9,8 +9,10 @@ package be.wolkmaan.klimtoren.application;
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Party;
+import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
+import java.util.List;
 
 /**
  *
@@ -39,8 +41,13 @@ public interface PartyService {
      */
     public Person registerNewUser(String givenName, String surName, 
             String middleName, String userName, String password) throws UserAlreadyExistsException;
-    
-    
+    /**
+     * Set the attributes for a person.
+     * @param person
+     * @param details
+     * @return 
+     */
+    public Person addPersonDetails(Person person, List<PartyAttribute> details);
     /**
      * Adds a new organization.
      * @param name
@@ -51,6 +58,7 @@ public interface PartyService {
      * Adds a new organization.
      * @param name
      * @param parent
+     * @param kindOfParent
      * @return 
      */
     public Organization registerNewOrganization(String name, Party parent, Kind kindOfParent);

@@ -11,11 +11,13 @@ import be.wolkmaan.klimtoren.party.Authentication;
 import be.wolkmaan.klimtoren.party.FullName;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Party;
+import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyRepository;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
 import com.google.common.base.Strings;
 import java.util.Date;
+import java.util.List;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,6 +124,8 @@ public class PartyServiceImpl implements PartyService {
         else
             return null;
     }
+    
+    
 
     
     /* -----------------------------------------
@@ -160,5 +164,14 @@ public class PartyServiceImpl implements PartyService {
 
     private String encryptPassword(String password, String salt) {
         return password + "-" + salt; //TODO create algorithm
+    }
+
+    @Override
+    public Person addPersonDetails(Person person, List<PartyAttribute> details) {
+        details.stream().forEach((attribute) -> {
+            person.setAttribute(attribute.getName(), attribute.getValue());
+        });
+       partyRepository.store(person);
+       return person;
     }
 }
