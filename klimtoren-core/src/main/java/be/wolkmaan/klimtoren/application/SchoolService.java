@@ -6,6 +6,7 @@
 
 package be.wolkmaan.klimtoren.application;
 
+import be.wolkmaan.klimtoren.exceptions.NoDomainNameFoundException;
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.PartyAttribute;
@@ -17,7 +18,10 @@ import java.util.Date;
  * @author karl
  */
 public interface SchoolService {
-    public Person registerNewStudent(String givenName, String surName, String middleName, Organization school, PartyAttribute... details);
+    public Person registerNewStudent(String givenName, String surName, String middleName, 
+                                        Organization school, PartyAttribute... details)
+                                            throws NoDomainNameFoundException;
+    
     public boolean addStudentToGroup(Person student, Organization group);
     public boolean addStudentToGroup(Person student, Organization group, Date start);
     
@@ -33,4 +37,9 @@ public interface SchoolService {
     public boolean connectParentsToStudent(Person mother, Person father, Person student);
     public boolean connectParentsToStudent(Person mother, Person father, Person student, Kind parentsRelation);
     public boolean setParentsRelation(Person mother, Person father, Kind parentsRelation);
+    
+    //TODO: FOR TEST SCOPE ONLY
+    //remove afterwards
+    public String generatePassword(String givenName, String surName);
+    public String generateUsername(String givenName, String surName, String domainName);
 }
