@@ -12,8 +12,8 @@
 hs_err_pid*
 
 # mac
-.DS_STORE
-.netbeans*
+.DS_Store
+
 
 #target
-/target
+*/target/*
