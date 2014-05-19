@@ -103,6 +103,4 @@ public interface PartyService {
      */
     public boolean login(String username, String password)
             throws UserDoesNotExistException, UserNotAllowedException, UserLockedException;
-
-    
 }

@@ -174,7 +174,7 @@ public class PartyServiceImpl implements PartyService {
             return false;
         }
     }
-
+     
     /* -----------------------------------------
      |   Private methods
      ----------------------------------------- */
