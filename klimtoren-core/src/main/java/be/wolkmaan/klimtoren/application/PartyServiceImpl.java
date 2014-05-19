@@ -206,11 +206,9 @@ public class PartyServiceImpl implements PartyService {
     }
 
     private String encryptPassword(String password) {
-        return encryptPassword(password, null);
+        StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
+        return encryptor.encryptPassword(password);
     }
-
-    private String encryptPassword(String password, String salt) {
-        return password + "-" + salt; //TODO create algorithm
     }
 
     @Override

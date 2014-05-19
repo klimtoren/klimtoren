@@ -88,6 +88,17 @@ public interface PartyService {
      */
     public PartyToPartyRelationship stopRelation(Long id);
     
+   
+    /**
+     * Checks is a person entered the correct password.
+     * This method verifies if the user exists, if the user is granted and if the user isn't locked.
+     * @param username
+     * @param password
+     * @return
+     * @throws UserDoesNotExistException
+     * @throws UserNotAllowedException
+     * @throws UserLockedException 
+     */
     public boolean login(String username, String password)
             throws UserDoesNotExistException, UserNotAllowedException, UserLockedException;
 }

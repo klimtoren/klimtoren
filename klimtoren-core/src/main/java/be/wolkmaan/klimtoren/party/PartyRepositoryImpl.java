@@ -7,8 +7,9 @@ package be.wolkmaan.klimtoren.party;
 
 import be.wolkmaan.klimtoren.persistence.HibernateRepository;
 import java.io.Serializable;
-import org.hibernate.Query;
+import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
 import org.springframework.stereotype.Repository;
 
 @Repository("partyRepository")
@@ -16,16 +17,16 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
 
     @Override
     public Person findByUsername(String username) {
-        String qs = "select p.displayName, a.username from Person as p join p.authentication as a where a.username=:username";
-        Query query = getSession().createQuery(qs)
-                .setParameter("username", username);
+        Criteria crit = getSession().createCriteria(Person.class)
+                .createAlias("authentication", "auth", JoinType.LEFT_OUTER_JOIN)
+                .add(Restrictions.eq("auth.username", username));
 
-        return (Person) query.uniqueResult();
+        return (Person) crit.uniqueResult();
     }
 
     @Override
     public PartyToPartyRelationship get(Long id) {
-        return (PartyToPartyRelationship)getSession().createCriteria(PartyToPartyRelationship.class)
+        return (PartyToPartyRelationship) getSession().createCriteria(PartyToPartyRelationship.class)
                     .add(Restrictions.eq("id", id))
                     .uniqueResult();
     }

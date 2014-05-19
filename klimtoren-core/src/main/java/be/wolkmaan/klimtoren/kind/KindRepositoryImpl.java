@@ -7,8 +7,6 @@
 package be.wolkmaan.klimtoren.kind;
 
 import be.wolkmaan.klimtoren.persistence.HibernateRepository;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 
 /**
