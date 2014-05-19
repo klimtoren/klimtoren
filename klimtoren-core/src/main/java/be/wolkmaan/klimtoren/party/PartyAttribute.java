@@ -38,4 +38,15 @@ public class PartyAttribute extends EntitySupport<PartyAttribute, Long> {
     @ManyToOne
     @JoinColumn(name="forParty")
     private Party forParty;
+    
+    /* ---------------------------------------
+    |  Extra c'tor 
+    --------------------------------------- */
+    public PartyAttribute(String name, String value, Kind kind) {
+        this.start = new Date();
+        this.name = name;
+        this.value = value;
+        this.kind = kind;
+        this.forParty = forParty;
+    }
 }
