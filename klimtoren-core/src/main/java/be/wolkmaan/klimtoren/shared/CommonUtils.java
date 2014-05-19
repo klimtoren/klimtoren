@@ -6,6 +6,7 @@
 package be.wolkmaan.klimtoren.shared;
 
 import be.wolkmaan.klimtoren.security.exceptions.EncryptionOperationNotPossibleException;
+import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
 
@@ -126,6 +127,12 @@ public class CommonUtils {
         
     }
 
+    public static String normalizeAndTrim(String string) {
+        return Normalizer
+                .normalize(string, Normalizer.Form.NFD)
+                .replaceAll("[^\\p{ASCII}]", "")
+                .replace(" ", "");
+    }
     
     //this class should only be called statically
     private CommonUtils() {
