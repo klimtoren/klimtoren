@@ -46,5 +46,9 @@ public enum Kind {
     AIRPORT_EXPRESS,
     BEAMER,
     TV,
-    DIGIBOARD;
+    DIGIBOARD,
+    
+    //DATATYPES
+    STRING,
+    ENCRYPTED_TEXT;
 }
