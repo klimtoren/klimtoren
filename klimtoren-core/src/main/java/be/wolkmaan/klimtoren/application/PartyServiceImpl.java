@@ -5,6 +5,9 @@
  */
 package be.wolkmaan.klimtoren.application;
 
+import be.wolkmaan.klimtoren.exceptions.UserDoesNotExistException;
+import be.wolkmaan.klimtoren.exceptions.UserLockedException;
+import be.wolkmaan.klimtoren.exceptions.UserNotAllowedException;
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.kind.KindRepository;
 import be.wolkmaan.klimtoren.party.Authentication;
@@ -15,6 +18,7 @@ import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyRepository;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
+import be.wolkmaan.klimtoren.security.util.StrongPasswordEncryptor;
 import com.google.common.base.Strings;
 import java.util.Date;
 import java.util.List;
@@ -37,8 +41,8 @@ public class PartyServiceImpl implements PartyService {
     private KindRepository kindRepository;
 
     /* -----------------------------------------
-    |   Transactions
-    ----------------------------------------- */
+     |   Transactions
+     ----------------------------------------- */
     @Override
     @Transactional
     public Person registerNewPerson(String givenName, String surName, String middleName) {
@@ -93,7 +97,7 @@ public class PartyServiceImpl implements PartyService {
         registerRelation(org, parent, kindOfParent);
         return org;
     }
-    
+
     @Transactional
     @Override
     public PartyToPartyRelationship registerRelation(Party context, Party reference, Kind kind) {
@@ -102,11 +106,11 @@ public class PartyServiceImpl implements PartyService {
         p2p.setKind(kind);
         p2p.setReferencedParty(reference);
         p2p.setContextParty(context);
-        
+
         partyRepository.store(p2p);
         return p2p;
     }
-    
+
     @Transactional
     @Override
     public PartyToPartyRelationship stopRelation(PartyToPartyRelationship p2p) {
@@ -114,23 +118,65 @@ public class PartyServiceImpl implements PartyService {
         partyRepository.store(p2p);
         return p2p;
     }
-    
+
     @Transactional
     @Override
     public PartyToPartyRelationship stopRelation(Long id) {
         PartyToPartyRelationship p2p = partyRepository.get(id);
-        if(p2p!=null) 
+        if (p2p != null) {
             return this.stopRelation(p2p);
-        else
+        } else {
             return null;
+        }
     }
-    
-    
 
-    
+    @Transactional
+    @Override
+    public boolean login(String username, String password)
+            throws UserDoesNotExistException, UserNotAllowedException, UserLockedException {
+        StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
+        Person person = partyRepository.findByUsername(username);
+        if (person == null) {
+            throw new UserDoesNotExistException();
+        }
+
+        final Authentication auth = person.getAuthentication();
+        if (auth == null) {
+            throw new UserDoesNotExistException();
+        }
+        if (!auth.isGranted()) {
+            throw new UserNotAllowedException();
+        }
+        if (auth.isLocked()) {
+            throw new UserLockedException();
+        }
+
+        String encPassword = auth.getPassword();
+
+        boolean allowed = encryptor.checkPassword(password, encPassword);
+        if (allowed) {
+            auth.setLastLogin(new Date());
+            auth.setLastAttemptFailureTime(CommonDateUtils.getSQLMinimum());
+            auth.setLoginAttemptFailureCount(0);
+            partyRepository.store(auth);
+            return true;
+        } else {
+            auth.setLastAttemptFailureTime(new Date());
+            int failure = auth.getLoginAttemptFailureCount() + 1;
+            auth.setLoginAttemptFailureCount(failure);
+            if (failure == 3) {//TODO set failureCount in configuration file somewhere
+                auth.setLocked(true);
+                partyRepository.store(auth);
+                throw new UserLockedException();
+            }
+            partyRepository.store(auth);
+            return false;
+        }
+    }
+
     /* -----------------------------------------
-    |   Private methods
-    ----------------------------------------- */
+     |   Private methods
+     ----------------------------------------- */
     private Person createPerson(String givenName, String surName, String middleName) {
         Date registerDate = new Date();
         String displayName = givenName
@@ -171,7 +217,7 @@ public class PartyServiceImpl implements PartyService {
         details.stream().forEach((attribute) -> {
             person.setAttribute(attribute.getName(), attribute.getValue());
         });
-       partyRepository.store(person);
-       return person;
+        partyRepository.store(person);
+        return person;
     }
 }

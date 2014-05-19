@@ -6,6 +6,9 @@
 
 package be.wolkmaan.klimtoren.application;
 
+import be.wolkmaan.klimtoren.exceptions.UserDoesNotExistException;
+import be.wolkmaan.klimtoren.exceptions.UserLockedException;
+import be.wolkmaan.klimtoren.exceptions.UserNotAllowedException;
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Party;
@@ -84,4 +87,7 @@ public interface PartyService {
      * @return 
      */
     public PartyToPartyRelationship stopRelation(Long id);
+    
+    public boolean login(String username, String password)
+            throws UserDoesNotExistException, UserNotAllowedException, UserLockedException;
 }
