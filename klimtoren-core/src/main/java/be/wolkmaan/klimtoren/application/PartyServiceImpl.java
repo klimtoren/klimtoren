@@ -209,7 +209,6 @@ public class PartyServiceImpl implements PartyService {
         StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
         return encryptor.encryptPassword(password);
     }
-    }
 
     @Override
     public Person addPersonDetails(Person person, List<PartyAttribute> details) {
