@@ -211,11 +211,12 @@ public class PartyServiceImpl implements PartyService {
     }
 
     @Override
-    public Person addPersonDetails(Person person, List<PartyAttribute> details) {
+    @Transactional
+    public Party addPartyDetails(Party party, List<PartyAttribute> details) {
         details.stream().forEach((attribute) -> {
-            person.setAttribute(attribute.getName(), attribute.getValue());
+            party.setAttribute(attribute.getName(), attribute.getValue());
         });
-        partyRepository.store(person);
-        return person;
+        partyRepository.store(party);
+        return party;
     }
 }

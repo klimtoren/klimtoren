@@ -73,6 +73,8 @@ public class Party extends EntitySupport<Party, Long> {
     }
 
     public PartyAttribute getAttribute(String key) {
+        if(this.getAttributes() == null)
+            return null;
         for (PartyAttribute pa : this.getAttributes()) {
             if (pa.getName().toUpperCase().equals(key.toUpperCase())) {
                 return pa;

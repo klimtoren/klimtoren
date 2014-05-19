@@ -44,13 +44,15 @@ public interface PartyService {
      */
     public Person registerNewUser(String givenName, String surName, 
             String middleName, String userName, String password) throws UserAlreadyExistsException;
+    
+    
     /**
      * Set the attributes for a person.
      * @param person
      * @param details
      * @return 
      */
-    public Person addPersonDetails(Person person, List<PartyAttribute> details);
+    public Party addPartyDetails(Party party, List<PartyAttribute> details);
     /**
      * Adds a new organization.
      * @param name
@@ -101,4 +103,6 @@ public interface PartyService {
      */
     public boolean login(String username, String password)
             throws UserDoesNotExistException, UserNotAllowedException, UserLockedException;
+
+    
 }
