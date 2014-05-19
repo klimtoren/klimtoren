@@ -7,6 +7,8 @@
 package be.wolkmaan.klimtoren.kind;
 
 import be.wolkmaan.klimtoren.persistence.HibernateRepository;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -15,5 +17,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("kindRepository")
 public class KindRepositoryImpl extends HibernateRepository<Kind> implements KindRepository {
-    
+
 }

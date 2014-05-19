@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package be.wolkmaan.klimtoren.kind;
 
 /**
@@ -11,15 +10,40 @@ package be.wolkmaan.klimtoren.kind;
  * @author karl
  */
 public enum Kind {
-    /* PARTY RELATED */
+    //HUMAN
     PERSON,
-    ORGANIZATION, 
     
-    /* WORK RELATED */
+    //FAMILY & RELATIVES
+    WIFE,
+    HUSBAND,
+    FATHER,
+    MOTHER,
+    SON,
+    DAUGHTER,
+    PARENT,
+    
+    //ORANIZATIONS
+    COMPANY,
+    ORGANIZATION,
     EMPLOYEE,
     INTERIM,
     
-    /* PRIVATE RELATED */
-    WIFE,
-    HUSBAND
+    //SCHOOL SPECIFIC
+    SCHOOL,
+    DIRECTOR,
+    TEACHER,
+    STUDENT,
+    
+    //RESOURCES
+    COMPUTER,
+    PC,
+    MAC,
+    LINUX,
+    SWITCH,
+    ROUTER,
+    AIRPORT,
+    AIRPORT_EXPRESS,
+    BEAMER,
+    TV,
+    DIGIBOARD;
 }
