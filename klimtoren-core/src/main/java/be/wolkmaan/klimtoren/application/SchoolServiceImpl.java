@@ -10,6 +10,7 @@ import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyRepository;
+import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
 import be.wolkmaan.klimtoren.security.encryption.pbe.StandardPBEStringEncryptor;
 import be.wolkmaan.klimtoren.shared.CommonUtils;
@@ -72,6 +73,23 @@ public class SchoolServiceImpl implements SchoolService {
         
         //AUTO-GENERATE: password how to return to provide this information
         //TRANSIENT FIELD IN PERSON OR IN AUTHENTICATION?
+        return student;
+    }
+    @Override
+    public Person unSubscribeStudent(Person student, Organization school) {
+        return unSubscribeStudent(student, school, new Date());
+    }
+    @Override
+    public Person unSubscribeStudent(Person student, Organization school, Date end) {
+        List<PartyToPartyRelationship> relations = partyRepository.findRelation(student, school, true);
+        if(relations != null) {
+            relations.stream().map((relation) -> {
+                relation.setEnd(end);
+                return relation;
+            }).forEach((relation) -> {
+                partyRepository.store(relation);
+            });
+        }
         return student;
     }
 

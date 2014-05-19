@@ -5,8 +5,10 @@
  */
 package be.wolkmaan.klimtoren.party;
 
+import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.persistence.HibernateRepository;
 import java.io.Serializable;
+import java.util.List;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
@@ -27,12 +29,76 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
     @Override
     public PartyToPartyRelationship get(Long id) {
         return (PartyToPartyRelationship) getSession().createCriteria(PartyToPartyRelationship.class)
-                    .add(Restrictions.eq("id", id))
-                    .uniqueResult();
+                .add(Restrictions.eq("id", id))
+                .uniqueResult();
     }
 
     @Override
     public Party remove(Serializable id) {
         throw new UnsupportedOperationException("You can't remove a party. Stop relations and end fullnames instead.");
+    }
+
+    @Override
+    public PartyToPartyRelationship findRelation(Party context, Party reference, Kind kind) {
+        Criteria crit = createUnidirectional(context, reference);
+        crit.add(Restrictions.eq("kind", kind.name()));
+        return (PartyToPartyRelationship) crit.uniqueResult();
+    }
+
+    @Override
+    public List<PartyToPartyRelationship> findRelation(Party context, Party reference) {
+        Criteria crit = createUnidirectional(context, reference);
+        return (List<PartyToPartyRelationship>) crit.list();
+    }
+
+    @Override
+    public List<PartyToPartyRelationship> findRelation(Party context, Party reference, Kind kind, boolean bidirectional) {
+        Criteria crit = null;
+        if(bidirectional)
+           crit = createBidirectional(context, reference);
+        else
+            crit = createUnidirectional(context, reference);
+        
+        crit.add(Restrictions.eq("kind", kind.name()));
+        
+        return (List<PartyToPartyRelationship>)crit.list();
+    }
+
+    @Override
+    public List<PartyToPartyRelationship> findRelation(Party context, Party reference, boolean bidirectional) {
+         Criteria crit = null;
+        if(bidirectional)
+           crit = createBidirectional(context, reference);
+        else
+            crit = createUnidirectional(context, reference);
+        
+        return (List<PartyToPartyRelationship>)crit.list();
+    }
+    
+    /* ---------------------------------
+    |  PRIVATE METHODS 
+    --------------------------------- */
+    private Criteria createBidirectional(Party context, Party reference) {
+        Criteria crit = getSession().createCriteria(PartyToPartyRelationship.class)
+                .add(Restrictions.or(
+                                Restrictions.and(
+                                        Restrictions.eq("context", context),
+                                        Restrictions.eq("reference", reference)
+                                ),
+                                Restrictions.and(
+                                        Restrictions.eq("context", reference),
+                                        Restrictions.eq("reference", context)
+                                )
+                        ));
+        return crit;
+    }
+
+    private Criteria createUnidirectional(Party context, Party reference) {
+        Criteria crit = getSession().createCriteria(PartyToPartyRelationship.class)
+                .add(Restrictions.and(
+                                Restrictions.eq("context", context),
+                                Restrictions.eq("reference", reference)
+                        ));
+        return crit;
     }
 }

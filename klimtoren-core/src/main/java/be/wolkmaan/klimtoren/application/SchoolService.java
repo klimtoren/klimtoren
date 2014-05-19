@@ -21,6 +21,8 @@ public interface SchoolService {
     public Person registerNewStudent(String givenName, String surName, String middleName, 
                                         Organization school, PartyAttribute... details)
                                             throws NoDomainNameFoundException;
+    public Person unSubscribeStudent(Person student, Organization school);
+    public Person unSubscribeStudent(Person student, Organization school, Date end);
     
     public boolean addStudentToGroup(Person student, Organization group);
     public boolean addStudentToGroup(Person student, Organization group, Date start);
