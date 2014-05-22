@@ -54,7 +54,7 @@ public final class WebPBEConfigRegistry {
     }
 
     public boolean isWebConfigurationDone() {
-        return (this.webConfigurationDone || (this.configs.size() == 0));
+        return (this.webConfigurationDone || (this.configs.isEmpty()));
     }
 
     public void setWebConfigurationDone(final boolean configurationDone) {

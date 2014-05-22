@@ -15,10 +15,17 @@ import be.wolkmaan.klimtoren.security.salt.FixedSaltGenerator;
 import be.wolkmaan.klimtoren.security.salt.RandomSaltGenerator;
 import be.wolkmaan.klimtoren.security.salt.SaltGenerator;
 import be.wolkmaan.klimtoren.shared.CommonUtils;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.Provider;
+import java.security.spec.InvalidKeySpecException;
 import java.text.Normalizer;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -84,6 +91,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
         this.algorithmSet = true;
     }
 
+    @Override
     public synchronized void setPassword(String password) {
         CommonUtils.validateNotEmpty(password, "Password cannot be set empty");
         if (isInitialized()) {
@@ -96,6 +104,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
         this.passwordSet = true;
     }
 
+    @Override
     public synchronized void setPasswordCharArray(char[] password) {
         CommonUtils.validateNotNull(password, "Password cannot be set null");
         CommonUtils.validateIsTrue(password.length > 0, "Password cannot be set empty");
@@ -225,7 +234,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
                 final Integer configKeyObtentionIterations
                         = this.config.getKeyObtentionIterations();
                 if (configKeyObtentionIterations != null) {
-                    CommonUtils.validateIsTrue(configKeyObtentionIterations.intValue() > 0,
+                    CommonUtils.validateIsTrue(configKeyObtentionIterations > 0,
                             "Number of iterations for key obtention must be "
                             + "greater than zero");
                 }
@@ -247,7 +256,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
                         = ((this.iterationsSet)
                         || (configKeyObtentionIterations == null))
                         ? this.keyObtentionIterations
-                        : configKeyObtentionIterations.intValue();
+                        : configKeyObtentionIterations;
                 this.saltGenerator
                         = ((this.saltGeneratorSet) || (configSaltGenerator == null))
                         ? this.saltGenerator : configSaltGenerator;
@@ -330,7 +339,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
 
             } catch (EncryptionInitializationException e) {
                 throw e;
-            } catch (Throwable t) {
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | NoSuchProviderException t) {
                 throw new EncryptionInitializationException(t);
             }
 
@@ -364,7 +373,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
                     this.decryptCipher.init(
                             Cipher.DECRYPT_MODE, this.key, parameterSpec);
 
-                } catch (final Exception e) {
+                } catch (final InvalidKeyException | InvalidAlgorithmParameterException e) {
                     // If encryption fails, it is more secure not to return any 
                     // information about the cause in nested exceptions. Simply fail.
                     throw new EncryptionOperationNotPossibleException();
@@ -465,6 +474,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
      * @throws EncryptionInitializationException if initialization could not be
      * correctly done (for example, no password has been set).
      */
+    @Override
     public byte[] encrypt(final byte[] message)
             throws EncryptionOperationNotPossibleException {
 
@@ -525,7 +535,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
             // installed, so better give a usefull error message.
             handleInvalidKeyException(e);
             throw new EncryptionOperationNotPossibleException();
-        } catch (final Exception e) {
+        } catch (final IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException e) {
             // If encryption fails, it is more secure not to return any 
             // information about the cause in nested exceptions. Simply fail.
             throw new EncryptionOperationNotPossibleException();
@@ -557,6 +567,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
      * @throws EncryptionInitializationException if initialization could not be
      * correctly done (for example, no password has been set).
      */
+    @Override
     public byte[] decrypt(final byte[] encryptedMessage)
             throws EncryptionOperationNotPossibleException {
 
@@ -582,8 +593,8 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
             // to be included into the encrypted message itself, get it from 
             // there. If not, the salt is supposed to be fixed and thus the
             // salt generator can be safely asked for it again.
-            byte[] salt = null;
-            byte[] encryptedMessageKernel = null;
+            byte[] salt;
+            byte[] encryptedMessageKernel;
             if (this.saltGenerator.includePlainSaltInEncryptionResults()) {
 
                 final int saltStart = 0;
@@ -649,7 +660,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
             // installed, so better give a usefull error message.
             handleInvalidKeyException(e);
             throw new EncryptionOperationNotPossibleException();
-        } catch (final Exception e) {
+        } catch (final IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException e) {
             // If decryption fails, it is more secure not to return any 
             // information about the cause in nested exceptions. Simply fail.
             throw new EncryptionOperationNotPossibleException();
@@ -660,7 +671,7 @@ public class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncrypt
     private void handleInvalidKeyException(final InvalidKeyException e) {
 
         if ((e.getMessage() != null)
-                && ((e.getMessage().toUpperCase().indexOf("KEY SIZE") != -1))) {
+                && ((e.getMessage().toUpperCase().contains("KEY SIZE")))) {
 
             throw new EncryptionOperationNotPossibleException(
                     "Encryption raised an exception. A possible cause is "

@@ -202,13 +202,13 @@ public class StandardByteDigester implements ByteDigester {
 
                 final Integer configSaltSizeBytes = this.config.getSaltSizeBytes();
                 if (configSaltSizeBytes != null) {
-                    CommonUtils.validateIsTrue(configSaltSizeBytes.intValue() >= 0,
+                    CommonUtils.validateIsTrue(configSaltSizeBytes >= 0,
                             "Salt size in bytes must be non-negative");
                 }
 
                 final Integer configIterations = this.config.getIterations();
                 if (configIterations != null) {
-                    CommonUtils.validateIsTrue(configIterations.intValue() > 0,
+                    CommonUtils.validateIsTrue(configIterations > 0,
                             "Number of iterations must be greater than zero");
                 }
 
@@ -235,10 +235,10 @@ public class StandardByteDigester implements ByteDigester {
                         ? this.algorithm : configAlgorithm;
                 this.saltSizeBytes
                         = ((this.saltSizeBytesSet) || (configSaltSizeBytes == null))
-                        ? this.saltSizeBytes : configSaltSizeBytes.intValue();
+                        ? this.saltSizeBytes : configSaltSizeBytes;
                 this.iterations
                         = ((this.iterationsSet) || (configIterations == null))
-                        ? this.iterations : configIterations.intValue();
+                        ? this.iterations : configIterations;
                 this.saltGenerator
                         = ((this.saltGeneratorSet) || (configSaltGenerator == null))
                         ? this.saltGenerator : configSaltGenerator;
@@ -250,13 +250,13 @@ public class StandardByteDigester implements ByteDigester {
                         ? this.provider : configProvider;
                 this.invertPositionOfSaltInMessageBeforeDigesting
                         = ((this.invertPositionOfSaltInMessageBeforeDigestingSet) || (configInvertPositionOfSaltInMessageBeforeDigesting == null))
-                        ? this.invertPositionOfSaltInMessageBeforeDigesting : configInvertPositionOfSaltInMessageBeforeDigesting.booleanValue();
+                        ? this.invertPositionOfSaltInMessageBeforeDigesting : configInvertPositionOfSaltInMessageBeforeDigesting;
                 this.invertPositionOfPlainSaltInEncryptionResults
                         = ((this.invertPositionOfPlainSaltInEncryptionResultsSet) || (configInvertPositionOfPlainSaltInEncryptionResults == null))
-                        ? this.invertPositionOfPlainSaltInEncryptionResults : configInvertPositionOfPlainSaltInEncryptionResults.booleanValue();
+                        ? this.invertPositionOfPlainSaltInEncryptionResults : configInvertPositionOfPlainSaltInEncryptionResults;
                 this.useLenientSaltSizeCheck
                         = ((this.useLenientSaltSizeCheckSet) || (configUseLenientSaltSizeCheck == null))
-                        ? this.useLenientSaltSizeCheck : configUseLenientSaltSizeCheck.booleanValue();
+                        ? this.useLenientSaltSizeCheck : configUseLenientSaltSizeCheck;
 
             }
 
@@ -289,9 +289,7 @@ public class StandardByteDigester implements ByteDigester {
                 } else {
                     this.md = MessageDigest.getInstance(this.algorithm);
                 }
-            } catch (NoSuchAlgorithmException e) {
-                throw new EncryptionInitializationException(e);
-            } catch (NoSuchProviderException e) {
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
                 throw new EncryptionInitializationException(e);
             }
 
@@ -308,6 +306,7 @@ public class StandardByteDigester implements ByteDigester {
         }
     }
 
+    @Override
     public byte[] digest(byte[] message) {
         if (message == null) {
             return null;
@@ -324,7 +323,7 @@ public class StandardByteDigester implements ByteDigester {
 
     private byte[] digest(final byte[] message, final byte[] salt) {
         try {
-            byte[] digest = null;
+            byte[] digest;
             synchronized (this.md) {
                 this.md.reset();
                 if (salt != null) {
@@ -357,6 +356,7 @@ public class StandardByteDigester implements ByteDigester {
 
     }
     
+    @Override
     public boolean matches(final byte[] message, final byte[] digest) {
         if (message == null) {
             return (digest == null);
@@ -404,7 +404,7 @@ public class StandardByteDigester implements ByteDigester {
             final byte[] encryptedMessage = digest(message, salt);
             return (digestsAreEqual(encryptedMessage, digest));
         
-        } catch (Exception e) {
+        } catch (EncryptionOperationNotPossibleException e) {
             throw new EncryptionOperationNotPossibleException();
         }
         

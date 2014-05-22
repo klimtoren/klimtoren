@@ -12,6 +12,7 @@ import be.wolkmaan.klimtoren.security.exceptions.EncryptionInitializationExcepti
 import be.wolkmaan.klimtoren.security.exceptions.EncryptionOperationNotPossibleException;
 import be.wolkmaan.klimtoren.security.salt.SaltGenerator;
 import be.wolkmaan.klimtoren.shared.CommonUtils;
+import java.io.UnsupportedEncodingException;
 import java.security.Provider;
 import org.apache.commons.codec.binary.Base64;
 
@@ -58,10 +59,12 @@ public class StandardPBEStringEncryptor implements PBEStringCleanablePasswordEnc
         this.byteEncryptor.setAlgorithm(algorithm);
     }
 
+    @Override
     public void setPassword(final String password) {
         this.byteEncryptor.setPassword(password);
     }
 
+    @Override
     public void setPasswordCharArray(char[] password) {
         this.byteEncryptor.setPasswordCharArray(password);
     }
@@ -160,7 +163,7 @@ public class StandardPBEStringEncryptor implements PBEStringCleanablePasswordEnc
 
             // We encode the result in BASE64 or HEXADECIMAL so that we obtain
             // the safest result String possible.
-            String result = null;
+            String result;
             if (this.stringOutputTypeBase64) {
                 encryptedMessage = this.base64.encode(encryptedMessage);
                 result = new String(encryptedMessage, ENCRYPTED_MESSAGE_CHARSET);
@@ -170,11 +173,9 @@ public class StandardPBEStringEncryptor implements PBEStringCleanablePasswordEnc
 
             return result;
 
-        } catch (EncryptionInitializationException e) {
+        } catch (EncryptionInitializationException | EncryptionOperationNotPossibleException e) {
             throw e;
-        } catch (EncryptionOperationNotPossibleException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException e) {
             // If encryption fails, it is more secure not to return any 
             // information about the cause in nested exceptions. Simply fail.
             throw new EncryptionOperationNotPossibleException();
@@ -191,7 +192,7 @@ public class StandardPBEStringEncryptor implements PBEStringCleanablePasswordEnc
             initialize();
         }
         try {
-            byte[] encryptedMessageBytes = null;
+            byte[] encryptedMessageBytes;
             // Decode input to bytes depending on whether it is a
             // BASE64-encoded or hexadecimal String
             if (this.stringOutputTypeBase64) {
@@ -211,11 +212,9 @@ public class StandardPBEStringEncryptor implements PBEStringCleanablePasswordEnc
             // processes.
             return new String(message, MESSAGE_CHARSET);
 
-        } catch (EncryptionInitializationException e) {
+        } catch (EncryptionInitializationException | EncryptionOperationNotPossibleException e) {
             throw e;
-        } catch (EncryptionOperationNotPossibleException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException e) {
             // If decryption fails, it is more secure not to return any 
             // information about the cause in nested exceptions. Simply fail.
             throw new EncryptionOperationNotPossibleException();

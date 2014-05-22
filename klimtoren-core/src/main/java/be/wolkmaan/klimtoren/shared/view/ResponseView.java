@@ -6,7 +6,6 @@
 
 package be.wolkmaan.klimtoren.shared.view;
 
-import be.wolkmaan.klimtoren.shared.view.BaseView;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 

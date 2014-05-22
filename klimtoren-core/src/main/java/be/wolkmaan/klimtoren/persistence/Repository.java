@@ -12,6 +12,7 @@ import java.util.List;
 /**
  *
  * @author karl
+ * @param <T>
  */
 public interface Repository<T> {
     public void store(Object entity);

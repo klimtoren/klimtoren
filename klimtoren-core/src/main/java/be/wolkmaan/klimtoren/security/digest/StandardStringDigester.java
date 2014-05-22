@@ -12,8 +12,7 @@ import be.wolkmaan.klimtoren.security.exceptions.EncryptionInitializationExcepti
 import be.wolkmaan.klimtoren.security.exceptions.EncryptionOperationNotPossibleException;
 import be.wolkmaan.klimtoren.security.salt.SaltGenerator;
 import be.wolkmaan.klimtoren.shared.CommonUtils;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.UnsupportedEncodingException;
 import java.security.Provider;
 import java.text.Normalizer;
 import lombok.extern.slf4j.Slf4j;
@@ -177,7 +176,7 @@ public class StandardStringDigester implements StringDigester {
                     this.stringDigesterConfig.getSuffix();
                 this.unicodeNormalizationIgnored = 
                     ((this.unicodeNormalizationIgnoredSet) || (configUnicodeNormalizationIgnored == null))?
-                            this.unicodeNormalizationIgnored : configUnicodeNormalizationIgnored.booleanValue();
+                            this.unicodeNormalizationIgnored : configUnicodeNormalizationIgnored;
                 this.stringOutputType = 
                     ((this.stringOutputTypeSet) || (configStringOutputType == null))?
                             this.stringOutputType : configStringOutputType;
@@ -194,6 +193,7 @@ public class StandardStringDigester implements StringDigester {
             this.byteDigester.initialize();
         }
     }
+    @Override
     public String digest(final String message) {
 
         if (message == null) {
@@ -208,7 +208,7 @@ public class StandardStringDigester implements StringDigester {
         try {
 
             // Normalize Unicode message to NFC form
-            String normalizedMessage = null;
+            String normalizedMessage;
             if (! this.unicodeNormalizationIgnored) {
                 normalizedMessage = Normalizer.normalize(message, Normalizer.Form.NFC);
             } else {
@@ -247,11 +247,9 @@ public class StandardStringDigester implements StringDigester {
             
             return result.toString(); 
 
-        } catch (EncryptionInitializationException e) {
+        } catch (EncryptionInitializationException | EncryptionOperationNotPossibleException e) {
             throw e;
-        } catch (EncryptionOperationNotPossibleException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException e) {
             // If digest fails, it is more secure not to return any information
             // about the cause in nested exceptions. Simply fail.
             throw new EncryptionOperationNotPossibleException();
@@ -259,6 +257,7 @@ public class StandardStringDigester implements StringDigester {
     }
     
     
+    @Override
     public boolean matches(final String message, final String digest) {
 
         String processedDigest = digest;
@@ -296,7 +295,7 @@ public class StandardStringDigester implements StringDigester {
         try {
 
             // Normalize Unicode message to NFC form
-            String normalizedMessage = null;
+            String normalizedMessage;
             if (! this.unicodeNormalizationIgnored) {
                 normalizedMessage = Normalizer.normalize(message, Normalizer.Form.NFC);
             } else {
@@ -310,7 +309,7 @@ public class StandardStringDigester implements StringDigester {
 
             // The BASE64 or HEXADECIMAL encoding is reversed and the digest
             // is converted into a byte array.
-            byte[] digestBytes = null;
+            byte[] digestBytes;
             if (this.stringOutputTypeBase64) {
                 // The digest must be a US-ASCII String BASE64-encoded
                 digestBytes = processedDigest.getBytes(DIGEST_CHARSET);
@@ -322,11 +321,9 @@ public class StandardStringDigester implements StringDigester {
             // The StandardByteDigester is asked to match message to digest.
             return this.byteDigester.matches(messageBytes, digestBytes); 
         
-        } catch (EncryptionInitializationException e) {
+        } catch (EncryptionInitializationException | EncryptionOperationNotPossibleException e) {
             throw e;
-        } catch (EncryptionOperationNotPossibleException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException e) {
             // If digest fails, it is more secure not to return any information
             // about the cause in nested exceptions. Simply fail.
             throw new EncryptionOperationNotPossibleException();

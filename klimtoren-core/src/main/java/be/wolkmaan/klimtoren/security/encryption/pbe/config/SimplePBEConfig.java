@@ -74,7 +74,7 @@ public void setSaltGeneratorClassName(final String saltGeneratorClassName) {
                     Thread.currentThread().getContextClassLoader().loadClass(saltGeneratorClassName);
                 this.saltGenerator = 
                     (SaltGenerator) saltGeneratorClass.newInstance();
-            } catch (Exception e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 throw new EncryptionInitializationException(e);
             }
         } else {
@@ -93,7 +93,7 @@ public void setSaltGeneratorClassName(final String saltGeneratorClassName) {
                 final Class providerClass = 
                     Thread.currentThread().getContextClassLoader().loadClass(providerClassName);
                 this.provider = (Provider) providerClass.newInstance();
-            } catch (Exception e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 throw new EncryptionInitializationException(e);
             }
         } else {

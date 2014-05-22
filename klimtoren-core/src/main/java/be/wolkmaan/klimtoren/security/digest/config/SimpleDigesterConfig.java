@@ -204,7 +204,7 @@ public class SimpleDigesterConfig implements DigesterConfig {
                     Thread.currentThread().getContextClassLoader().loadClass(saltGeneratorClassName);
                 this.saltGenerator = 
                     (SaltGenerator) saltGeneratorClass.newInstance();
-            } catch (Exception e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 throw new EncryptionInitializationException(e);
             }
         } else {
@@ -303,7 +303,7 @@ public class SimpleDigesterConfig implements DigesterConfig {
                 final Class providerClass = 
                     Thread.currentThread().getContextClassLoader().loadClass(providerClassName);
                 this.provider = (Provider) providerClass.newInstance();
-            } catch (Exception e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 throw new EncryptionInitializationException(e);
             }
         } else {
@@ -470,45 +470,55 @@ public class SimpleDigesterConfig implements DigesterConfig {
 
 
     
+    @Override
     public String getAlgorithm() {
         return this.algorithm;
     }
 
     
+    @Override
     public Integer getIterations() {
         return this.iterations;
     }
 
     
+    @Override
     public Integer getSaltSizeBytes() {
         return this.saltSizeBytes;
     }
     
     
+    @Override
     public SaltGenerator getSaltGenerator() {
         return this.saltGenerator;
     }
     
+    @Override
     public String getProviderName() {
         return this.providerName;
     }
     
+    @Override
     public Provider getProvider() {
         return this.provider;
     }
     
+    @Override
     public Boolean getInvertPositionOfSaltInMessageBeforeDigesting() {
         return this.invertPositionOfSaltInMessageBeforeDigesting;
     }
     
+    @Override
     public Boolean getInvertPositionOfPlainSaltInEncryptionResults() {
         return this.invertPositionOfPlainSaltInEncryptionResults;
     }
 
+    @Override
     public Boolean getUseLenientSaltSizeCheck() {
         return this.useLenientSaltSizeCheck;
     }
 
+    @Override
     public Integer getPoolSize() {
         return this.poolSize;
     }

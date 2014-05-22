@@ -25,7 +25,7 @@ public class CommonUtils {
                         "HEXADECIMAL", "HEXA", "0X", "HEX", "HEXADEC"
                     }
             );
-    private static char[] hexDigits
+    private static final char[] hexDigits
             = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     public static Boolean getStandardBooleanValue(final String value) {
@@ -81,7 +81,7 @@ public class CommonUtils {
                 result[i / 2] = (byte) (0x0 + ((first & 0xff) << 4) + (second & 0xff));
             }
             return result;
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             throw new EncryptionOperationNotPossibleException();
         }
     }

@@ -8,8 +8,6 @@ package be.wolkmaan.klimtoren.security.salt;
 import be.wolkmaan.klimtoren.security.exceptions.EncryptionInitializationException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
