@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  *
  * @author karl
+ * @param <T>
  */
 public abstract class HibernateRepository<T> implements Repository<T> {
 

@@ -10,19 +10,15 @@ import be.wolkmaan.klimtoren.exceptions.PartyAlreadyExistsException;
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.location.LocationRepository;
 import be.wolkmaan.klimtoren.location.Mailbox;
-import be.wolkmaan.klimtoren.location.PartyLocation;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyRepository;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
 import be.wolkmaan.klimtoren.party.Person.Gender;
-import be.wolkmaan.klimtoren.security.encryption.pbe.StandardPBEStringEncryptor;
-import be.wolkmaan.klimtoren.shared.CommonUtils;
 import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +47,7 @@ public class SchoolServiceImpl implements SchoolService {
         Person student = createUser(school, givenName, surName, middleName, gender, details);
 
         partyService.registerRelation(student, school, Kind.STUDENT, Kind.SCHOOL);
-            
+
         return student;
     }
 
@@ -61,6 +57,7 @@ public class SchoolServiceImpl implements SchoolService {
     }
 
     @Override
+    @Transactional
     public Person unSubscribeStudent(Person student, Organization school, Date end) {
         List<PartyToPartyRelationship> relations = partyRepository.findRelation(student, school, true);
         if (relations != null) {
@@ -75,41 +72,38 @@ public class SchoolServiceImpl implements SchoolService {
     }
 
     @Override
-    public Organization registerNewSchool(String schoolName, String descriptiveInformation, Mailbox address) {
+    @Transactional
+    public Organization registerNewSchool(String schoolName, String descriptiveInformation, Mailbox address, String domainName) {
         Organization school = createSchool(schoolName, descriptiveInformation);
 
-        address = saveOrGetMailbox(address);
-        createPartyLocation(address, school, true, true);
+        address = locationRepository.saveOrGetMailbox(address);
+        partyService.createPartyLocation(address, school, Kind.WORK, true, true);
+        partyService.addPartyDetails(school, 
+                    Lists.newArrayList(new PartyAttribute("domainName", "klimtoren.be", Kind.STRING)));
         partyRepository.store(school);
         return school;
     }
 
-    @Override
-    public Organization registerNewAddressForSchool(Organization school, Mailbox newAddress) {
-        newAddress = saveOrGetMailbox(newAddress);
-        createPartyLocation(newAddress, school, true, true);
-
-        partyRepository.store(school);
-        return school;
-    }
+    
 
     @Override
+    @Transactional
     public Organization registerNewDepartment(String departmentName, String descriptiveInformation, Mailbox address, Organization forSchool) {
         Organization department = createSchool(departmentName, descriptiveInformation);
 
-        address = saveOrGetMailbox(address);
-        createPartyLocation(address, department, true, false);
+        address = locationRepository.saveOrGetMailbox(address);
+        partyService.createPartyLocation(address, department, Kind.WORK, true, false);
         partyRepository.store(department);
 
-        partyService.registerRelation(department, forSchool, Kind.DEPARTMENT);
-        partyService.registerRelation(forSchool, department, Kind.PRINCIPAL_SCHOOL);
+        partyService.registerRelation(department, forSchool, Kind.DEPARTMENT, Kind.PRINCIPAL_SCHOOL);
 
         return department;
     }
 
     @Override
+    @Transactional
     public Organization registerNewGroup(String groupName, String descriptiveInformation, Organization school, PartyAttribute... details)
-        throws PartyAlreadyExistsException {
+            throws PartyAlreadyExistsException {
         Organization classgroup = partyRepository.findOrganization(groupName, school, Kind.CLASSGROUP);
         if (classgroup == null) {
             classgroup = new Organization();
@@ -117,9 +111,9 @@ public class SchoolServiceImpl implements SchoolService {
             classgroup.setDescriptiveInformation(descriptiveInformation);
             classgroup.setPrimaryKind(Kind.CLASSGROUP);
             classgroup.setAttributes(Lists.newArrayList(details));
-            
+
             partyRepository.store(classgroup);
-            
+
             partyService.registerRelation(classgroup, school, Kind.CLASSGROUP, Kind.SCHOOL);
         } else {
             throw new PartyAlreadyExistsException("The classgroup already exists.");
@@ -128,18 +122,21 @@ public class SchoolServiceImpl implements SchoolService {
     }
 
     @Override
+    @Transactional
     public void addStudentToGroup(Person student, Organization group) {
         partyService.registerRelation(student, group, Kind.STUDENT, Kind.CLASSGROUP);
     }
 
     @Override
+    @Transactional
     public void addStudentToGroup(Person student, Organization group, Date start) {
         partyService.registerRelation(student, group, Kind.STUDENT, Kind.CLASSGROUP, start);
     }
 
     @Override
-    public Person registerNewTeacher(String givenName, String surName, String middleName, Organization school, Gender gender, PartyAttribute... details) 
-    throws NoDomainNameFoundException {
+    @Transactional
+    public Person registerNewTeacher(String givenName, String surName, String middleName, Organization school, Gender gender, PartyAttribute... details)
+            throws NoDomainNameFoundException {
         Person teacher = createUser(school, givenName, surName, middleName, gender, details);
 
         partyService.registerRelation(teacher, school, Kind.TEACHER, Kind.SCHOOL);
@@ -157,8 +154,8 @@ public class SchoolServiceImpl implements SchoolService {
     }
 
     @Override
-    public Person connectParentToStudent(Organization school, String givenName, String surName, String middleName, Gender gender, Person student, Kind relation) 
-        throws NoDomainNameFoundException {
+    public Person connectParentToStudent(Organization school, String givenName, String surName, String middleName, Gender gender, Person student, Kind relation)
+            throws NoDomainNameFoundException {
         Person parent = createUser(school, givenName, surName, middleName, gender);
         partyService.registerRelation(parent, school, Kind.PARENT, Kind.SCHOOL);
         partyService.registerRelation(parent, student, relation, student.getGender().equals(Gender.MALE) ? Kind.SON : Kind.DAUGHTER);
@@ -167,125 +164,75 @@ public class SchoolServiceImpl implements SchoolService {
 
     @Override
     public void connectParentToStudent(Organization school, Person parent, Person student, Kind relation) {
-        partyService.registerRelation(student, parent, relation, student.getGender().equals(Gender.MALE) ? Kind.SON : Kind.DAUGHTER);
+        partyService.registerRelation(parent, school, Kind.PARENT, Kind.SCHOOL); //if parent is not yet added to the school
+        partyService.registerRelation(parent, student, relation, student.getGender().equals(Gender.MALE) ? Kind.SON : Kind.DAUGHTER);
     }
 
     @Override
     public void connectStudentToParent(Organization school, Person student, Person parent) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        partyService.registerRelation(parent, school, Kind.PARENT, Kind.SCHOOL);
+        partyService.registerRelation(student, parent, 
+                student.getGender().equals(Gender.MALE) ? Kind.SON : Kind.DAUGHTER, 
+                parent.getGender().equals(Gender.MALE) ? Kind.FATHER : Kind.MOTHER);
+        
     }
 
     @Override
-    public void connectParentsToStudent(Organization school, Person mother, Person father, Person student) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void connectParentsToStudent(Organization school, Person partner1, Person partner2, Person student) {
+        connectParentToStudent(school, partner1, student, partner1.getGender().equals(Gender.MALE) ? Kind.FATHER : Kind.MOTHER);
+        connectParentToStudent(school, partner2, student, partner2.getGender().equals(Gender.MALE) ? Kind.FATHER : Kind.MOTHER);
     }
 
     @Override
-    public void connectParentsToStudent(Organization school, Person mother, Person father, Person student, Kind parentsRelation) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void connectParentsToStudent(Organization school, Person partner1, Person partner2, Person student, Kind parentsRelation) {
+        connectParentsToStudent(school, partner1, partner2, student);
+        registerParentsRelation(partner1, partner2, parentsRelation);
     }
 
     @Override
-    public void setParentsRelation(Person mother, Person father, Kind parentsRelation) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    @Transactional
+    public void registerParentsRelation(Person partner1, Person partner2, Kind parentsRelation) {
+        partyService.registerRelation(partner1, partner2, parentsRelation);
+        if (parentsRelation.equals(Kind.MARRIED)) {
+            partyService.registerRelation(partner1, partner2,
+                    (partner1.getGender().equals(Gender.MALE) ? Kind.HUSBAND : Kind.WIFE),
+                    (partner2.getGender().equals(Gender.MALE) ? Kind.HUSBAND : Kind.WIFE));
+        } else if (parentsRelation.equals(Kind.DIVORCED)) {
+            List<PartyToPartyRelationship> relations = partyRepository.findRelation(partner1, partner2, true);
+            relations.stream()
+                    .filter((relation) -> (relation.getKind().equals(Kind.WIFE) || 
+                                            relation.getKind().equals(Kind.HUSBAND) || 
+                                            relation.getKind().equals(Kind.MARRIED)))
+                    .map((relation) -> {
+                        relation.setEnd(new Date()); //when 
+                        return relation;
+                    }).forEach((relation) -> {
+                        partyRepository.store(relation);
+                    });
+        }
     }
 
     /* ----------------------------------------
      |  PRIVATE METHODS 
      ---------------------------------------- */
     /**
-     * Generates an user with default username and auto-generated password.
-     * The user relates to a given school.
+     * Generates an user with default username and auto-generated password. The
+     * user relates to a given school.
+     *
      * @param school
      * @param givenName
      * @param surName
      * @param middleName
      * @param details
      * @return
-     * @throws NoDomainNameFoundException 
+     * @throws NoDomainNameFoundException
      */
     @Transactional
     private Person createUser(Organization school, String givenName, String surName, String middleName, Gender gender, PartyAttribute... details) throws NoDomainNameFoundException {
-        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-        encryptor.setPassword("wolkmaan");
-       
-        PartyAttribute domainName = school.getAttribute("domainName");
-        if (domainName == null) {
-            throw new NoDomainNameFoundException();
-        }
-        String autoPassword = generatePassword(givenName, surName);
-        String username = generateUsername(givenName, surName, domainName.getValue());
-        Person user = null;
-        try {
-            user = partyService.registerNewUser(givenName, surName, middleName, gender, username, autoPassword);
-
-            List<PartyAttribute> attributes = Lists.newArrayList(details);
-
-            PartyAttribute initialPwd = new PartyAttribute("initialPwd", encryptor.encrypt(autoPassword), Kind.ENCRYPTED_TEXT);
-            attributes.add(initialPwd);
-
-            partyService.addPartyDetails(user, attributes);
-            
-
-        } catch (UserAlreadyExistsException ex) {
-            //this error can't be called, 
-            //the function generateUsername auto-generates an unique username.
-            //therefor this dump to log (you never know)
-            log.error(ex.getMessage());
-        }
-        return user;
-    }
-    /**
-     * Generates a random password, based on the name.
-     *
-     * @param givenName
-     * @param surName
-     * @return
-     */
-    private String generatePassword(String givenName, String surName) {
-        final String AB = "0123456789";
-        final String special = "*%?&!@#";
-        Random rnd = new Random();
-        int len = 8;
-        StringBuilder sb = new StringBuilder(len);
-        sb.append(givenName.substring(0, 1).toLowerCase());
-        sb.append(surName.substring(0, 1).toLowerCase());
-        for (int i = 2; i < len - 1; i++) {
-            sb.append(AB.charAt(rnd.nextInt(AB.length())));
-        }
-        sb.append(special.charAt(rnd.nextInt(special.length())));
-        return sb.toString();
+        return partyService.registerNewUser(school, givenName, surName, middleName, gender, details);
     }
 
-    /**
-     * Generates a standard username, based on given, surname and the domainname
-     * of the school.
-     *
-     * @param givenName
-     * @param surName
-     * @param domainName
-     * @return
-     */
-    @Transactional
-    private String generateUsername(String givenName, String surName, String domainName) {
-        String gn = CommonUtils.normalizeAndTrim(givenName);
-        String sn = CommonUtils.normalizeAndTrim(surName);
-        String username = (gn + "." + sn + "@" + domainName).toLowerCase();
-        boolean userNameFound = false;
-        Person p;
-        int i = 1;
-        while (!userNameFound) {
-            p = partyRepository.findByUsername(username);
-            if (p != null) {
-                //username already exists
-                username = (gn + "." + sn + (++i) + "@" + domainName).toLowerCase();
-            } else {
-                userNameFound = true;
-            }
-        }
-        return username;
-    }
-
+   
     private Organization createSchool(String departmentName, String descriptiveInformation) {
         Organization org = new Organization();
         org.setDisplayName(departmentName);
@@ -294,31 +241,7 @@ public class SchoolServiceImpl implements SchoolService {
         return org;
     }
 
-    @Transactional
-    private Mailbox saveOrGetMailbox(Mailbox newAddress) {
-        //find the new address in database
-        //if it already exists, use this one
-        //else store a new mailbox
-        Mailbox inDB = locationRepository.findByMailbox(newAddress);
-        if (inDB != null) {
-            return inDB;
-        } else {
-            //not saved yet
-            locationRepository.store(newAddress);
-            return newAddress;
-        }
-    }
 
-    private PartyLocation createPartyLocation(Mailbox address, Organization school, boolean isDefault, boolean isContactPoint) {
-        PartyLocation location = new PartyLocation();
-        location.setAtLocation(address);
-        location.setParty(school);
-        location.setStart(new Date());
-        location.setContactPoint(isContactPoint);
-        location.setDefault(isDefault);
-        location.setPartyRoleKind(Kind.WORK);
-        return location;
-    }
     
-    
+
 }

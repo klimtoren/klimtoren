@@ -11,12 +11,15 @@ import be.wolkmaan.klimtoren.exceptions.UserDoesNotExistException;
 import be.wolkmaan.klimtoren.exceptions.UserLockedException;
 import be.wolkmaan.klimtoren.exceptions.UserNotAllowedException;
 import be.wolkmaan.klimtoren.party.Person;
+import be.wolkmaan.klimtoren.party.Person.Gender;
 import be.wolkmaan.klimtoren.security.util.StrongPasswordEncryptor;
 import be.wolkmaan.klimtoren.web.config.PersistenceConfig;
 import be.wolkmaan.klimtoren.web.config.RootConfig;
 import be.wolkmaan.klimtoren.web.config.WebMvcConfig;
 import lombok.extern.slf4j.Slf4j;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +37,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @WebAppConfiguration
 @ContextConfiguration(classes = {RootConfig.class, PersistenceConfig.class, WebMvcConfig.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-
 public class StrongTextEncryptorTest {
 
     @Autowired
@@ -63,7 +65,7 @@ public class StrongTextEncryptorTest {
     @Test
     public void login() {
         try {
-            Person p = partyService.registerNewUser("Karl", "Van Iseghem", "Flor", "karl.vaniseghem@klimtoren.be", "pass");
+            Person p = partyService.registerNewUser("Karl", "Van Iseghem", "Flor", Gender.MALE, "karl.vaniseghem@klimtoren.be", "pass");
 
             try {
                 boolean granted = partyService.login(p.getAuthentication().getUsername(), "pass");

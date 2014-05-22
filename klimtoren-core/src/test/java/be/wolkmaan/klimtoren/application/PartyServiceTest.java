@@ -11,6 +11,7 @@ import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
+import be.wolkmaan.klimtoren.party.Person.Gender;
 import be.wolkmaan.klimtoren.security.encryption.pbe.StandardPBEStringEncryptor;
 import be.wolkmaan.klimtoren.web.config.PersistenceConfig;
 import be.wolkmaan.klimtoren.web.config.RootConfig;
@@ -21,19 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +47,7 @@ public class PartyServiceTest {
     private SchoolService schoolService;
 
     public Person testRegisterPerson() {
-        Person p = partyService.registerNewPerson("Ulrike", "Drieskens", "");
+        Person p = partyService.registerNewPerson("Ulrike", "Drieskens", "", Gender.FEMALE);
         assertNotNull(p.getFullName());
         assertTrue(p.getId() != null && p.getId() > 0);
         assertTrue(p.getFullName().getStartDate().compareTo(new Date()) == -1);
@@ -68,7 +57,7 @@ public class PartyServiceTest {
     public Person testRegisterUser() {
         Person p = new Person();
         try {
-            p = partyService.registerNewUser("Karl", "Van Iseghem", "Flor", "karl.vaniseghem@klimtoren.be", "ofosok");
+            p = partyService.registerNewUser("Karl", "Van Iseghem", "Flor", Gender.MALE, "karl.vaniseghem@klimtoren.be", "ofosok");
         } catch (UserAlreadyExistsException ex) {
             Logger.getLogger(PartyServiceTest.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -104,7 +93,7 @@ public class PartyServiceTest {
         Organization org = partyService.registerNewOrganization("VBS De Klimtoren");
         partyService.addPartyDetails(org, Lists.newArrayList(new PartyAttribute("domainName", "klimtoren.be", Kind.STRING)));
         try {
-            Person stud = schoolService.registerNewStudent("Karl", "Van Iseghem", "Flor", org);
+            Person stud = schoolService.registerNewStudent("Karl", "Van Iseghem", "Flor", org, Gender.MALE);
             log.debug(stud.getAttribute("initialPwd").getValue());
 
             StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();

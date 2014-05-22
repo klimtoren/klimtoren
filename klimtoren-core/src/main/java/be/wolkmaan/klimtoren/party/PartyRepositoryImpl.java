@@ -29,9 +29,10 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
     @Override
     public Organization findOrganization(String name, Organization parent, Kind relationKind) {
         Criteria crit = getSession().createCriteria(PartyToPartyRelationship.class)
-                .add(Restrictions.eq("context.displayName", name).ignoreCase())
                 .add(Restrictions.eq("reference", parent))
-                .add(Restrictions.eq("kind", relationKind));
+                .add(Restrictions.eq("kind", relationKind))
+                .createAlias("context", "context")
+                .add(Restrictions.eq("context.displayName", name).ignoreCase());
         
         return (Organization) crit.uniqueResult();
     }
@@ -51,7 +52,7 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
     @Override
     public PartyToPartyRelationship findRelation(Party context, Party reference, Kind kind) {
         Criteria crit = createUnidirectional(context, reference);
-        crit.add(Restrictions.eq("kind", kind.name()));
+        crit.add(Restrictions.eq("kind", kind));
         return (PartyToPartyRelationship) crit.uniqueResult();
     }
 
@@ -63,21 +64,21 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
 
     @Override
     public List<PartyToPartyRelationship> findRelation(Party context, Party reference, Kind kind, boolean bidirectional) {
-        Criteria crit = null;
+        Criteria crit;
         if (bidirectional) {
             crit = createBidirectional(context, reference);
         } else {
             crit = createUnidirectional(context, reference);
         }
 
-        crit.add(Restrictions.eq("kind", kind.name()));
+        crit.add(Restrictions.eq("kind", kind));
 
         return (List<PartyToPartyRelationship>) crit.list();
     }
 
     @Override
     public List<PartyToPartyRelationship> findRelation(Party context, Party reference, boolean bidirectional) {
-        Criteria crit = null;
+        Criteria crit;
         if (bidirectional) {
             crit = createBidirectional(context, reference);
         } else {
@@ -101,7 +102,8 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
                                         Restrictions.eq("context", reference),
                                         Restrictions.eq("reference", context)
                                 )
-                        ));
+                        ))
+                .add(Restrictions.isNull("end")); //for now only search live relations
         return crit;
     }
 
@@ -110,7 +112,8 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
                 .add(Restrictions.and(
                                 Restrictions.eq("context", context),
                                 Restrictions.eq("reference", reference)
-                        ));
+                        ))
+                .add(Restrictions.isNull("end")); //for now only search live relations
         return crit;
     }
 }

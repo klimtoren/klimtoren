@@ -6,7 +6,6 @@
 
 package be.wolkmaan.klimtoren.party;
 
-import be.wolkmaan.klimtoren.party.Party;
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;

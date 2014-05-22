@@ -6,13 +6,14 @@
 package be.wolkmaan.klimtoren.party;
 
 import be.wolkmaan.klimtoren.kind.Kind;
-import be.wolkmaan.klimtoren.location.Location;
 import be.wolkmaan.klimtoren.location.PartyLocation;
 import be.wolkmaan.klimtoren.shared.EntitySupport;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.OneToMany;
@@ -41,7 +42,9 @@ public class Party extends EntitySupport<Party, Long> {
     private String name;
     private String displayName;
 
+    @Enumerated(EnumType.STRING)
     private Kind kind;
+    @Enumerated(EnumType.STRING)
     private Kind primaryKind;
 
     @OneToMany(mappedBy = "forParty")
@@ -52,7 +55,7 @@ public class Party extends EntitySupport<Party, Long> {
     @Cascade({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
     private List<FullName> names;
     
-    @OneToMany(mappedBy="party")
+    @OneToMany(mappedBy="forParty")
     @Cascade({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
     private List<PartyLocation> locations;
 
@@ -67,10 +70,10 @@ public class Party extends EntitySupport<Party, Long> {
         names.add(fullName);
     }
     public void addLocation(PartyLocation location) {
-        if(location == null) {
+        if(locations == null) {
             locations = new ArrayList<>();
         }
-        location.setParty(this);
+        location.setForParty(this);
         locations.add(location);
     }
 

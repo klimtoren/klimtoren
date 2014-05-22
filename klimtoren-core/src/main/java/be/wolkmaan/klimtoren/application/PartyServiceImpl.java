@@ -5,11 +5,16 @@
  */
 package be.wolkmaan.klimtoren.application;
 
+import be.wolkmaan.klimtoren.exceptions.NoDomainNameFoundException;
 import be.wolkmaan.klimtoren.exceptions.UserDoesNotExistException;
 import be.wolkmaan.klimtoren.exceptions.UserLockedException;
 import be.wolkmaan.klimtoren.exceptions.UserNotAllowedException;
 import be.wolkmaan.klimtoren.kind.Kind;
 import be.wolkmaan.klimtoren.kind.KindRepository;
+import be.wolkmaan.klimtoren.location.Location;
+import be.wolkmaan.klimtoren.location.LocationRepository;
+import be.wolkmaan.klimtoren.location.Mailbox;
+import be.wolkmaan.klimtoren.location.PartyLocation;
 import be.wolkmaan.klimtoren.party.Authentication;
 import be.wolkmaan.klimtoren.party.FullName;
 import be.wolkmaan.klimtoren.party.Organization;
@@ -19,11 +24,15 @@ import be.wolkmaan.klimtoren.party.PartyRepository;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
 import be.wolkmaan.klimtoren.party.Person.Gender;
+import be.wolkmaan.klimtoren.security.encryption.pbe.StandardPBEStringEncryptor;
 import be.wolkmaan.klimtoren.security.util.StrongPasswordEncryptor;
 import be.wolkmaan.klimtoren.shared.CommonDateUtils;
+import be.wolkmaan.klimtoren.shared.CommonUtils;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +50,8 @@ public class PartyServiceImpl implements PartyService {
     private PartyRepository partyRepository;
     @Autowired
     private KindRepository kindRepository;
+    @Autowired
+    private LocationRepository locationRepository;
 
     /* -----------------------------------------
      |   Transactions
@@ -82,6 +93,41 @@ public class PartyServiceImpl implements PartyService {
         log.debug(person.getAuthentication().toString());
         return person;
     }
+    @Transactional
+    @Override
+    public Person registerNewUser(Organization organization, String givenName, String surName, 
+            String middleName, Gender gender, PartyAttribute[] details) 
+                    throws NoDomainNameFoundException {
+        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+        encryptor.setPassword("wolkmaan");
+
+        PartyAttribute domainName = organization.getAttribute("domainName");
+        if (domainName == null) {
+            throw new NoDomainNameFoundException();
+        }
+        String autoPassword = generatePassword(givenName, surName);
+        String username = generateUsername(givenName, surName, domainName.getValue());
+        Person user = null;
+        try {
+            user = registerNewUser(givenName, surName, middleName, gender, username, autoPassword);
+
+            
+            List<PartyAttribute> attributes = Lists.newArrayList();
+            if(details != null) attributes = Lists.newArrayList(details);
+
+            PartyAttribute initialPwd = new PartyAttribute("initialPwd", encryptor.encrypt(autoPassword), Kind.ENCRYPTED_TEXT);
+            attributes.add(initialPwd);
+
+            addPartyDetails(user, attributes);
+
+        } catch (UserAlreadyExistsException ex) {
+            //this error can't be called, 
+            //the function generateUsername auto-generates an unique username.
+            //therefor this dump to log (you never know)
+            log.error(ex.getMessage());
+        }
+        return user;
+    }
 
     @Transactional
     @Override
@@ -109,13 +155,18 @@ public class PartyServiceImpl implements PartyService {
     @Transactional
     @Override
     public PartyToPartyRelationship registerRelation(Party context, Party reference, Kind kind, Date start) {
-        PartyToPartyRelationship p2p = new PartyToPartyRelationship();
-        p2p.setStart(start);
-        p2p.setKind(kind);
-        p2p.setReferencedParty(reference);
-        p2p.setContextParty(context);
+        //FIRST CHECK IF RELATION EXISTS
+        PartyToPartyRelationship p2p = partyRepository.findRelation(context, reference, kind);
 
-        partyRepository.store(p2p);
+        if (p2p == null) {
+            p2p = new PartyToPartyRelationship();
+            p2p.setStart(start);
+            p2p.setKind(kind);
+            p2p.setReference(reference);
+            p2p.setContext(context);
+
+            partyRepository.store(p2p);
+        }
         return p2p;
     }
 
@@ -149,6 +200,35 @@ public class PartyServiceImpl implements PartyService {
         } else {
             return null;
         }
+    }
+
+    @Transactional
+    @Override
+    public Party registerNewAddress(Party party, Mailbox newAddress, Kind kind) {
+        return registerNewAddress(party, newAddress, kind, false);
+    }
+
+    @Override
+    public Party registerNewAddress(Party party, Mailbox newAddress, Kind kind, boolean stopOldMailboxes) {
+        newAddress = locationRepository.saveOrGetMailbox(newAddress);
+        if (stopOldMailboxes) {
+            List<PartyLocation> locations = locationRepository.findPartyLocations(party, kind);
+            locations.stream().map((partyLocation) -> {
+                partyLocation.setEnd(new Date());
+                partyLocation.getForParty().getLocations().remove(partyLocation);
+                return partyLocation;
+            })
+            .forEach((partyLocation) -> {
+                partyRepository.store(partyLocation); 
+                //locationRepository.store(partyLocation);
+            });
+        }
+
+        createPartyLocation(newAddress, party, kind,
+                true, true);
+
+        partyRepository.store(party);
+        return party;
     }
 
     @Transactional
@@ -207,7 +287,7 @@ public class PartyServiceImpl implements PartyService {
         p.setDisplayName(displayName);
         p.setPrimaryKind(Kind.PERSON);
         p.setGender(gender);
-        
+
         FullName fn = new FullName();
         fn.setGivenName(givenName);
         fn.setSurName(surName);
@@ -239,6 +319,86 @@ public class PartyServiceImpl implements PartyService {
         });
         partyRepository.store(party);
         return party;
+    }
+
+    @Override
+    public PartyLocation createPartyLocation(Location location, Party party, Kind kind, boolean isDefault, boolean isContactPoint) {
+        PartyLocation partyLocation = new PartyLocation();
+        partyLocation.setAtLocation(location);
+        partyLocation.setForParty(party);
+        partyLocation.setStart(new Date());
+        partyLocation.setContactPoint(isContactPoint);
+        partyLocation.setDefault(isDefault);
+        partyLocation.setKind(kind);
+        party.addLocation(partyLocation);
+        return partyLocation;
+    }
+
+    
+    
+     /* ----------------------------------------
+     |  PRIVATE METHODS 
+     ---------------------------------------- */
+     /**
+     * Generates a random password, based on the name.
+     *
+     * @param givenName
+     * @param surName
+     * @return
+     */
+    private String generatePassword(String givenName, String surName) {
+        final String AB = "0123456789";
+        final String special = "*%?&!@#";
+        Random rnd = new Random();
+        int len = 8;
+        StringBuilder sb = new StringBuilder(len);
+        
+        String firstChar = givenName.substring(0, 1).toLowerCase();
+        firstChar = CommonUtils.normalizeAndTrim(firstChar);
+        String secondChar = surName.substring(0, 1).toLowerCase();
+        secondChar = CommonUtils.normalizeAndTrim(secondChar);
+        sb.append(firstChar);
+        sb.append(secondChar);
+        
+        
+        for (int i = 2; i < len - 1; i++) {
+            sb.append(AB.charAt(rnd.nextInt(AB.length())));
+        }
+        
+        sb.append(special.charAt(rnd.nextInt(special.length())));
+        return sb.toString();
+    }
+
+    /**
+     * Generates a standard username, based on given, surname and the domainname
+     * of the school.
+     *
+     * @param givenName
+     * @param surName
+     * @param domainName
+     * @return
+     */
+    @Transactional
+    private String generateUsername(String givenName, String surName, String domainName) {
+        
+        String gn = CommonUtils.normalizeAndTrim(givenName);
+        String sn = CommonUtils.normalizeAndTrim(surName);
+        
+        String username = (gn + "." + sn + "@" + domainName).toLowerCase();
+        
+        boolean userNameFound = false;
+        Person p;
+        int i = 1;
+        while (!userNameFound) {
+            p = partyRepository.findByUsername(username);
+            if (p != null) {
+                //username already exists
+                username = (gn + "." + sn + (++i) + "@" + domainName).toLowerCase();
+            } else {
+                userNameFound = true;
+            }
+        }
+        return username;
     }
 
 }

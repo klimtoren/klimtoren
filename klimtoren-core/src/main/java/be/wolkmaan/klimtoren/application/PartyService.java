@@ -5,10 +5,14 @@
  */
 package be.wolkmaan.klimtoren.application;
 
+import be.wolkmaan.klimtoren.exceptions.NoDomainNameFoundException;
 import be.wolkmaan.klimtoren.exceptions.UserDoesNotExistException;
 import be.wolkmaan.klimtoren.exceptions.UserLockedException;
 import be.wolkmaan.klimtoren.exceptions.UserNotAllowedException;
 import be.wolkmaan.klimtoren.kind.Kind;
+import be.wolkmaan.klimtoren.location.Location;
+import be.wolkmaan.klimtoren.location.Mailbox;
+import be.wolkmaan.klimtoren.location.PartyLocation;
 import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.Party;
 import be.wolkmaan.klimtoren.party.PartyAttribute;
@@ -30,6 +34,7 @@ public interface PartyService {
      * @param givenName
      * @param surName
      * @param middleName
+     * @param gender
      * @return
      */
     public Person registerNewPerson(String givenName, String surName, String middleName, Gender gender);
@@ -40,6 +45,7 @@ public interface PartyService {
      * @param givenName
      * @param surName
      * @param middleName
+     * @param gender
      * @param userName
      * @param password
      * @return
@@ -49,9 +55,27 @@ public interface PartyService {
             String middleName, Gender gender, String userName, String password) throws UserAlreadyExistsException;
 
     /**
+     * Adds a new person and autocreates an initial password and an username.
+     * The username is based on the givenname, surname and the domainname of 
+     * an organization that has the PartyAttribute "domainName".
+     * @param organiation
+     * @param givenName
+     * @param surName
+     * @param middleName
+     * @param gender
+     * @param details
+     * @return
+     * @throws NoDomainNameFoundException 
+     */
+    public Person registerNewUser(Organization organiation, String givenName, String surName, 
+            String middleName, Gender gender, PartyAttribute[] details)
+            throws NoDomainNameFoundException;
+
+    
+    /**
      * Set the attributes for a person.
      *
-     * @param person
+     * @param party
      * @param details
      * @return
      */
@@ -137,6 +161,36 @@ public interface PartyService {
     public PartyToPartyRelationship stopRelation(Long id);
 
     /**
+     * Adds a new mailbox for a party.
+     * @param party
+     * @param newAddress
+     * @param kind
+     * @return 
+     */
+    public Party registerNewAddress(Party party, Mailbox newAddress, Kind kind);
+    
+    /**
+     * Creates a relation between party and a location
+     * @param location
+     * @param party
+     * @param kind
+     * @param isDefault
+     * @param isContactPoint
+     * @return 
+     */
+    public PartyLocation createPartyLocation(Location location, Party party, Kind kind, boolean isDefault, boolean isContactPoint);
+    /**
+     * Adds a new mailbox for a party. This methods ends all the previous
+     * live mailboxes.
+     * @param party
+     * @param newAddress
+     * @param kind
+     * @param stopOldMailboxes
+     * @return 
+     */
+    public Party registerNewAddress(Party party, Mailbox newAddress, Kind kind, boolean stopOldMailboxes);
+    
+    /**
      * Checks is a person entered the correct password. This method verifies if
      * the user exists, if the user is granted and if the user isn't locked.
      *
@@ -150,4 +204,5 @@ public interface PartyService {
     public boolean login(String username, String password)
             throws UserDoesNotExistException, UserNotAllowedException, UserLockedException;
 
+    
 }

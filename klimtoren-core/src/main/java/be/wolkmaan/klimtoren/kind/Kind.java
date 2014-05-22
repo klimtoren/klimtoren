@@ -22,6 +22,8 @@ public enum Kind {
     SON,
     DAUGHTER,
     PARENT,
+    MARRIED,
+    DIVORCED,
     
     //ORANIZATIONS
     COMPANY,

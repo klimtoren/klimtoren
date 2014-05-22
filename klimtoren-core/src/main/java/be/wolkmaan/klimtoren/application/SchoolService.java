@@ -32,6 +32,7 @@ public interface SchoolService {
      * @param surName
      * @param middleName
      * @param school
+     * @param gender
      * @param details
      * @return
      * @throws NoDomainNameFoundException
@@ -66,23 +67,16 @@ public interface SchoolService {
      * @param schoolName
      * @param descriptiveInformation
      * @param address
+     * @param domainName
      * @return
      */
-    public Organization registerNewSchool(String schoolName, String descriptiveInformation, Mailbox address);
-
-    /**
-     * Registers a new address for a school.
-     *
-     * @param school
-     * @param newAddress
-     * @return
-     */
-    public Organization registerNewAddressForSchool(Organization school, Mailbox newAddress);
+    public Organization registerNewSchool(String schoolName, String descriptiveInformation, Mailbox address, String domainName);
 
     /**
      * Registers a new department for a school.
      *
-     * @param department
+     * @param departmentName
+     * @param descriptiveInformation
      * @param address
      * @param forSchool
      * @return
@@ -97,6 +91,7 @@ public interface SchoolService {
      * @param parent
      * @param details
      * @return
+     * @throws be.wolkmaan.klimtoren.exceptions.PartyAlreadyExistsException
      */
     public Organization registerNewGroup(String groupName, String descriptiveInformation, Organization parent, PartyAttribute... details)
             throws PartyAlreadyExistsException ;
@@ -123,6 +118,6 @@ public interface SchoolService {
 
     public void connectParentsToStudent(Organization school, Person mother, Person father, Person student, Kind parentsRelation);
 
-    public void setParentsRelation(Person mother, Person father, Kind parentsRelation);
+    public void registerParentsRelation(Person mother, Person father, Kind parentsRelation);
 
 }

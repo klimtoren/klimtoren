@@ -6,13 +6,19 @@
 package be.wolkmaan.klimtoren.party;
 
 import be.wolkmaan.klimtoren.kind.Kind;
-import be.wolkmaan.klimtoren.party.Party;
 import be.wolkmaan.klimtoren.shared.EntitySupport;
 import java.util.Date;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.NaturalId;
@@ -23,68 +29,40 @@ import org.hibernate.annotations.NaturalId;
  */
 @Table(name = "fullnames")
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class FullName extends EntitySupport<FullName, Long> {
 
     @NaturalId
-    @Getter
-    @Setter
+    @Temporal(javax.persistence.TemporalType.DATE)
     private Date startDate;
 
-    @Getter
-    @Setter
+    @Temporal(javax.persistence.TemporalType.DATE)
     private Date endDate;
 
     @NaturalId
     @ManyToOne
-    @Getter
-    @Setter
     private Party forParty;
 
     @NaturalId
-    @Getter
-    @Setter
     private String givenName;
 
     @NaturalId
-    @Getter
-    @Setter
     private String middleName;
 
     @NaturalId
-    @Getter
-    @Setter
     private String surName;
 
-    @Getter
-    @Setter
     private String title;
 
-    @Getter
-    @Setter
     private String nickName;
 
-    @Getter
-    @Setter
     private String pronunciation;
 
-    @Getter
-    @Setter
+    @Enumerated(EnumType.STRING)
     private Kind kind;
 
-    /*------------------------------
-     | Contructors
-     -----------------------------*/
-    public FullName() {
-
-    }
-
-    public FullName(String givenName, String surName, Date startDate, Party forParty) {
-        Validate.notNull(surName, "Surname is required.");
-        Validate.notNull(startDate, "Start date is required.");
-        Validate.notNull(forParty, "For Party is required.");
-        this.givenName = givenName;
-        this.surName = surName;
-        this.startDate = startDate;
-        this.forParty = forParty;
-    }
+ 
 }
