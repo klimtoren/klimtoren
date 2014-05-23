@@ -19,12 +19,30 @@ public interface PartyRepository extends Repository<Party> {
 
     /**
      * Finds an child organisation by name.
+     *
      * @param name
-     * @param parent 
-     * @param relationKind 
-     * @return  
+     * @param parent
+     * @param relationKind
+     * @return
      */
     public Organization findOrganization(String name, Organization parent, Kind relationKind);
+
+    /**
+     * Find all relations to a reference for a given kind.
+     *
+     * @param reference
+     * @param kind
+     * @return
+     */
+    public List<PartyToPartyRelationship> findRelationsForReference(Party reference, Kind kind);
+    
+    /**
+     * Find all relatinos from a context for a given kind.
+     * @param context
+     * @param kind
+     * @return 
+     */
+    public List<PartyToPartyRelationship> findRelationsForContext(Party context, Kind kind);
 
     /**
      * Get a relation between two parties by its identifier.
@@ -33,6 +51,20 @@ public interface PartyRepository extends Repository<Party> {
      * @return
      */
     public PartyToPartyRelationship get(Long id);
+
+    /**
+     * TODO: remove !!!
+     * @return
+     */
+    public List<PartyToPartyRelationship> listRelations();
+
+    /**
+     * Find all relations for a given conxtext.
+     *
+     * @param context
+     * @return
+     */
+    public List<PartyToPartyRelationship> listRelations(Party context);
 
     /**
      * Finds a relation between two parties, of a specific kind. The relation is

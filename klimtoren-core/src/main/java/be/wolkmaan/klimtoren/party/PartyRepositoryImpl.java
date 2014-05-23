@@ -43,12 +43,40 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
                 .add(Restrictions.eq("id", id))
                 .uniqueResult();
     }
+    @Override
+    public List<PartyToPartyRelationship> listRelations(Party context) {
+        return (List<PartyToPartyRelationship>)getSession().createCriteria(PartyToPartyRelationship.class)
+                .add(Restrictions.eq("context", context))
+                .add(Restrictions.isNull("end"))
+                .list();
+    }
+    @Override
+    public List<PartyToPartyRelationship> listRelations() {
+        return (List<PartyToPartyRelationship>)getSession().createCriteria(PartyToPartyRelationship.class)
+                .add(Restrictions.isNull("end"))
+                .list();
+    }
 
     @Override
     public Party remove(Serializable id) {
         throw new UnsupportedOperationException("You can't remove a party. Stop relations and end fullnames instead.");
     }
 
+    @Override
+    public List<PartyToPartyRelationship> findRelationsForReference(Party reference, Kind kind) {
+        Criteria crit = getSession().createCriteria(PartyToPartyRelationship.class)
+                .add(Restrictions.eq("reference", reference))
+                .add(Restrictions.eq("kind", kind))
+                .add(Restrictions.isNull("end"));
+        return crit.list();
+    }
+    @Override
+    public List<PartyToPartyRelationship> findRelationsForContext(Party context, Kind kind) {
+        String qstring = "select p2p from PartyToPartyRelationship as p2p inner join p2p.context as context "
+                + "where p2p.kind='" + kind.name() + "' and p2p.end is null";
+        return getSession().createQuery(qstring).list();
+    }
+    
     @Override
     public PartyToPartyRelationship findRelation(Party context, Party reference, Kind kind) {
         Criteria crit = createUnidirectional(context, reference);
@@ -116,4 +144,6 @@ public class PartyRepositoryImpl extends HibernateRepository<Party> implements P
                 .add(Restrictions.isNull("end")); //for now only search live relations
         return crit;
     }
+
+   
 }
