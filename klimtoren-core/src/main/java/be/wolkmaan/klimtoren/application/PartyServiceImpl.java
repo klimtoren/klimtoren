@@ -333,6 +333,24 @@ public class PartyServiceImpl implements PartyService {
         party.addLocation(partyLocation);
         return partyLocation;
     }
+    
+    @Transactional
+    @Override
+    public PartyLocation addPartyLocation(Location location, Party party, Kind kind, boolean isDefault, boolean isContactPoint) {
+        PartyLocation partyLocation = createPartyLocation(location, party, kind, isDefault, isContactPoint);
+        partyRepository.store(partyLocation);
+        return partyLocation;
+    }
+    @Transactional
+    @Override
+    public Party addPartyLocations(List<Location> locations, Party party, Kind kind, boolean isDefault, boolean isContactPoint) {
+        locations.stream().forEach((location) -> {
+            createPartyLocation(location, party, kind, isDefault, isContactPoint);
+        });
+        
+        partyRepository.store(party); //cascade save all locations
+        return party;
+    }
 
     
     

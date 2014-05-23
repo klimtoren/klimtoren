@@ -56,8 +56,9 @@ public interface PartyService {
 
     /**
      * Adds a new person and autocreates an initial password and an username.
-     * The username is based on the givenname, surname and the domainname of 
-     * an organization that has the PartyAttribute "domainName".
+     * The username is based on the givenname, surname and the domainname of an
+     * organization that has the PartyAttribute "domainName".
+     *
      * @param organiation
      * @param givenName
      * @param surName
@@ -65,13 +66,12 @@ public interface PartyService {
      * @param gender
      * @param details
      * @return
-     * @throws NoDomainNameFoundException 
+     * @throws NoDomainNameFoundException
      */
-    public Person registerNewUser(Organization organiation, String givenName, String surName, 
+    public Person registerNewUser(Organization organiation, String givenName, String surName,
             String middleName, Gender gender, PartyAttribute[] details)
             throws NoDomainNameFoundException;
 
-    
     /**
      * Set the attributes for a person.
      *
@@ -127,7 +127,7 @@ public interface PartyService {
      * @param reference
      * @param kind
      * @param start
-     * @return 
+     * @return
      */
     public PartyToPartyRelationship registerRelation(Party context, Party reference, Kind kind, Date start);
 
@@ -162,34 +162,62 @@ public interface PartyService {
 
     /**
      * Adds a new mailbox for a party.
+     *
      * @param party
      * @param newAddress
      * @param kind
-     * @return 
+     * @return
      */
     public Party registerNewAddress(Party party, Mailbox newAddress, Kind kind);
-    
+
     /**
      * Creates a relation between party and a location
+     *
      * @param location
      * @param party
      * @param kind
      * @param isDefault
      * @param isContactPoint
-     * @return 
+     * @return
      */
     public PartyLocation createPartyLocation(Location location, Party party, Kind kind, boolean isDefault, boolean isContactPoint);
+
     /**
-     * Adds a new mailbox for a party. This methods ends all the previous
-     * live mailboxes.
+     * Creates and stores a relation between party and a location.
+     *
+     * @param location
+     * @param party
+     * @param kind
+     * @param isDefault
+     * @param isContactPoint
+     * @return
+     */
+    public PartyLocation addPartyLocation(Location location, Party party, Kind kind, boolean isDefault, boolean isContactPoint);
+
+    /**
+     * Creates and stores all locations for a party.
+     *
+     * @param locations
+     * @param party
+     * @param kind
+     * @param isDefault
+     * @param isContactPoint
+     * @return
+     */
+    public Party addPartyLocations(List<Location> locations, Party party, Kind kind, boolean isDefault, boolean isContactPoint);
+
+    /**
+     * Adds a new mailbox for a party. This methods ends all the previous live
+     * mailboxes.
+     *
      * @param party
      * @param newAddress
      * @param kind
      * @param stopOldMailboxes
-     * @return 
+     * @return
      */
     public Party registerNewAddress(Party party, Mailbox newAddress, Kind kind, boolean stopOldMailboxes);
-    
+
     /**
      * Checks is a person entered the correct password. This method verifies if
      * the user exists, if the user is granted and if the user isn't locked.
@@ -204,5 +232,4 @@ public interface PartyService {
     public boolean login(String username, String password)
             throws UserDoesNotExistException, UserNotAllowedException, UserLockedException;
 
-    
 }
