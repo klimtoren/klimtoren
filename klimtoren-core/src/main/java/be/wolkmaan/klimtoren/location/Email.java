@@ -3,10 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package be.wolkmaan.klimtoren.location;
 
-import be.wolkmaan.klimtoren.shared.EntitySupport;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -18,17 +16,14 @@ import lombok.NoArgsConstructor;
  *
  * @author karl
  */
-@Table(name="emails")
+@Table(name = "emails")
 @Entity
-@Data @NoArgsConstructor @AllArgsConstructor @EqualsAndHashCode(callSuper=true)
-public class Email extends EntitySupport<Email, Long> {
-    public enum Type {
-        WORK,
-        PRIVATE,
-        GENERAL,
-        CUSTOM
-    }
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class Email extends Location {
+
     private String url;
-    private Type type;
     private String customType;
 }
