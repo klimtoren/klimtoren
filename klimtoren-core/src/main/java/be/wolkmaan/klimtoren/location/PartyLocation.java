@@ -11,6 +11,7 @@ import be.wolkmaan.klimtoren.party.Party;
 import be.wolkmaan.klimtoren.role.Role;
 import be.wolkmaan.klimtoren.shared.EntitySupport;
 import java.util.Date;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -38,18 +39,18 @@ public class PartyLocation extends EntitySupport<PartyLocation, Long> {
     private boolean isDefault;
     private boolean isContactPoint;
     
-    @ManyToOne
+    @ManyToOne(cascade={CascadeType.ALL})
     @JoinColumn(name="atLocation")
     private Location atLocation;
     
-    @ManyToOne
+    @ManyToOne(cascade={CascadeType.ALL})
     @JoinColumn(name="forParty")
     private Party forParty;
     
     @Enumerated(EnumType.STRING)
     private Kind kind;
     
-    @ManyToOne
+    @ManyToOne(cascade={CascadeType.ALL})
     @JoinColumn(name="role")
     private Role role;
     
