@@ -13,7 +13,10 @@ import be.wolkmaan.klimtoren.party.Organization;
 import be.wolkmaan.klimtoren.party.PartyAttribute;
 import be.wolkmaan.klimtoren.party.Person;
 import be.wolkmaan.klimtoren.party.Person.Gender;
+import be.wolkmaan.klimtoren.shared.tuples.Pair;
+import be.wolkmaan.klimtoren.shared.tuples.PairList;
 import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -94,6 +97,18 @@ public interface SchoolService {
      * @throws be.wolkmaan.klimtoren.exceptions.PartyAlreadyExistsException
      */
     public Organization registerNewGroup(String groupName, String descriptiveInformation, Organization parent, PartyAttribute... details)
+            throws PartyAlreadyExistsException ;
+    
+    /**
+     * Registers a new classgroup in a school ands set a relation with all parents provided
+     * @param groupName
+     * @param descriptiveInformation
+     * @param parents
+     * @param details
+     * @return
+     * @throws PartyAlreadyExistsException 
+     */
+    public Organization registerNewGroup(String groupName, String descriptiveInformation, PairList<Organization, Kind> parents, PartyAttribute... details)
             throws PartyAlreadyExistsException ;
 
     public void addStudentToGroup(Person student, Organization group);
