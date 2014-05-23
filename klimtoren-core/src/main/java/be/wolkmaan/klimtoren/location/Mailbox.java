@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package be.wolkmaan.klimtoren.location;
 
 import javax.persistence.Entity;
@@ -19,15 +18,19 @@ import lombok.NoArgsConstructor;
  *
  * @author karl
  */
-@Table(name="mailboxes")
+@Table(name = "mailboxes")
 @Entity
-@Data @NoArgsConstructor @AllArgsConstructor @EqualsAndHashCode(callSuper=true)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Mailbox extends Location {
+
     private String street;
     private String zipcode;
     private String stateOrProvince;
     private String city;
     @ManyToOne
-    @JoinColumn(name="country")
+    @JoinColumn(name = "country")
     private Country country;
 }
