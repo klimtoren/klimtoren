@@ -16,9 +16,12 @@ import be.wolkmaan.klimtoren.party.PartyRepository;
 import be.wolkmaan.klimtoren.party.PartyToPartyRelationship;
 import be.wolkmaan.klimtoren.party.Person;
 import be.wolkmaan.klimtoren.party.Person.Gender;
+import be.wolkmaan.klimtoren.shared.tuples.Pair;
+import be.wolkmaan.klimtoren.shared.tuples.PairList;
 import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,15 +79,15 @@ public class SchoolServiceImpl implements SchoolService {
     public Organization registerNewSchool(String schoolName, String descriptiveInformation, Mailbox address, String domainName) {
         Organization school = createSchool(schoolName, descriptiveInformation);
 
+        partyRepository.store(school);
+
         address = locationRepository.saveOrGetMailbox(address);
         partyService.createPartyLocation(address, school, Kind.WORK, true, true);
-        partyService.addPartyDetails(school, 
-                    Lists.newArrayList(new PartyAttribute("domainName", "klimtoren.be", Kind.STRING)));
+        partyService.addPartyDetails(school,
+                Lists.newArrayList(new PartyAttribute("domainName", domainName, Kind.STRING)));
         partyRepository.store(school);
         return school;
     }
-
-    
 
     @Override
     @Transactional
@@ -119,6 +122,35 @@ public class SchoolServiceImpl implements SchoolService {
             throw new PartyAlreadyExistsException("The classgroup already exists.");
         }
         return classgroup;
+    }
+
+    @Override
+    public Organization registerNewGroup(String groupName, String descriptiveInformation, PairList<Organization, Kind> parents, PartyAttribute... details) throws PartyAlreadyExistsException {
+        Optional<Organization> school = parents.stream()
+                .filter((parent) -> parent.getValue1().equals(Kind.SCHOOL))
+                .map((parent) -> parent.getValue0())
+                .findFirst();
+        if (!school.isPresent()) {
+            throw new IllegalArgumentException("There must be at least one Kind.SCHOOL in the parents list.");
+        }
+        Organization classgroup = partyRepository.findOrganization(groupName, school.get(), Kind.CLASSGROUP);
+        if (classgroup == null) {
+            classgroup = new Organization();
+            classgroup.setDisplayName(groupName);
+            classgroup.setDescriptiveInformation(descriptiveInformation);
+            classgroup.setPrimaryKind(Kind.CLASSGROUP);
+            classgroup.setAttributes(Lists.newArrayList(details));
+
+            partyRepository.store(classgroup);
+            for (Pair<Organization, Kind> parent : parents) {
+                //register classgroup as Kind.CLASSGROUP, parent of kind specified in the PairList.
+                partyService.registerRelation(classgroup, parent.getValue0(), Kind.CLASSGROUP, parent.getValue1());
+            }
+        } else {
+            throw new PartyAlreadyExistsException("The classgroup already exists.");
+        }
+        return classgroup;
+
     }
 
     @Override
@@ -171,10 +203,10 @@ public class SchoolServiceImpl implements SchoolService {
     @Override
     public void connectStudentToParent(Organization school, Person student, Person parent) {
         partyService.registerRelation(parent, school, Kind.PARENT, Kind.SCHOOL);
-        partyService.registerRelation(student, parent, 
-                student.getGender().equals(Gender.MALE) ? Kind.SON : Kind.DAUGHTER, 
+        partyService.registerRelation(student, parent,
+                student.getGender().equals(Gender.MALE) ? Kind.SON : Kind.DAUGHTER,
                 parent.getGender().equals(Gender.MALE) ? Kind.FATHER : Kind.MOTHER);
-        
+
     }
 
     @Override
@@ -200,9 +232,9 @@ public class SchoolServiceImpl implements SchoolService {
         } else if (parentsRelation.equals(Kind.DIVORCED)) {
             List<PartyToPartyRelationship> relations = partyRepository.findRelation(partner1, partner2, true);
             relations.stream()
-                    .filter((relation) -> (relation.getKind().equals(Kind.WIFE) || 
-                                            relation.getKind().equals(Kind.HUSBAND) || 
-                                            relation.getKind().equals(Kind.MARRIED)))
+                    .filter((relation) -> (relation.getKind().equals(Kind.WIFE)
+                            || relation.getKind().equals(Kind.HUSBAND)
+                            || relation.getKind().equals(Kind.MARRIED)))
                     .map((relation) -> {
                         relation.setEnd(new Date()); //when 
                         return relation;
@@ -232,7 +264,6 @@ public class SchoolServiceImpl implements SchoolService {
         return partyService.registerNewUser(school, givenName, surName, middleName, gender, details);
     }
 
-   
     private Organization createSchool(String departmentName, String descriptiveInformation) {
         Organization org = new Organization();
         org.setDisplayName(departmentName);
@@ -240,8 +271,4 @@ public class SchoolServiceImpl implements SchoolService {
         org.setPrimaryKind(Kind.SCHOOL);
         return org;
     }
-
-
-    
-
 }
