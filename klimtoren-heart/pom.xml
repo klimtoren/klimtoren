@@ -66,9 +66,15 @@
             <artifactId>cglib</artifactId>
         </dependency>
         
+        <!-- SQL -> JOOQ -->
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
+        </dependency>
+        <!-- BoneCP -->
+        <dependency>
+            <groupId>com.jolbox</groupId>
+            <artifactId>bonecp</artifactId>
         </dependency>
     </dependencies>
 
