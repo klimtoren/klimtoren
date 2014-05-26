@@ -11,7 +11,8 @@
         <module>klimtoren-parent-ear</module>
         <module>klimtoren-cms</module>
         <module>klimtoren-core</module>
-    </modules>
+    <module>klimtoren-heart</module>
+  </modules>
   
     <properties>
         <spring.version>4.0.4.RELEASE</spring.version>
@@ -27,6 +28,7 @@
         <guava.version>17.0</guava.version>
         <fasterxml.version>2.3.0</fasterxml.version>
         <mysql.connector.version>5.1.30</mysql.connector.version>
+        <jooq.version>3.3.2</jooq.version>
     </properties>
   
     <dependencyManagement>
@@ -292,12 +294,33 @@
                 <version>4.11</version>
             </dependency>
             
+            <!-- SQL -> JOOQ -->
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq</artifactId>
+                <version>${jooq.version}</version>
+            </dependency>
             
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-meta</artifactId>
+                <version>${jooq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen</artifactId>
+                <version>${jooq.version}</version>
+            </dependency>
+            
+            
+            <!-- modules -->
             <dependency>
                 <groupId>be.wolkmaan</groupId>
                 <artifactId>klimtoren-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            
+            
         </dependencies>
 
     </dependencyManagement>
