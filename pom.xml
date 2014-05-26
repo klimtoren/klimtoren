@@ -11,8 +11,8 @@
         <module>klimtoren-parent-ear</module>
         <module>klimtoren-cms</module>
         <module>klimtoren-core</module>
-    <module>klimtoren-heart</module>
-  </modules>
+        <module>klimtoren-heart</module>
+    </modules>
   
     <properties>
         <spring.version>4.0.4.RELEASE</spring.version>
@@ -29,6 +29,7 @@
         <fasterxml.version>2.3.0</fasterxml.version>
         <mysql.connector.version>5.1.30</mysql.connector.version>
         <jooq.version>3.3.2</jooq.version>
+        <bonecp.version>0.8.0.RELEASE</bonecp.version>
     </properties>
   
     <dependencyManagement>
@@ -300,7 +301,6 @@
                 <artifactId>jooq</artifactId>
                 <version>${jooq.version}</version>
             </dependency>
-            
             <dependency>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-meta</artifactId>
@@ -310,6 +310,12 @@
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen</artifactId>
                 <version>${jooq.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>com.jolbox</groupId>
+                <artifactId>bonecp</artifactId>
+                <version>${bonecp.version}</version>
             </dependency>
             
             
