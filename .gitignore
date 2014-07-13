@@ -19,3 +19,7 @@ hs_err_pid*
 */target/*
 /klimtoren-client/nbproject/private/
 /klimtoren-client/build/
+/klimtoren-cms/nbproject/private/
+/klimtoren-cms/build/
+/klimtoren-cms.old/nbproject/private/
+/Replay/nbproject/private/

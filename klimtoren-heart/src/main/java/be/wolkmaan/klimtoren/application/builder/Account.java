@@ -9,6 +9,7 @@ import be.wolkmaan.klimtoren.heart.enums.Gender;
 import be.wolkmaan.klimtoren.heart.enums.Kind;
 import static com.google.common.base.Preconditions.*;
 import com.google.common.base.Strings;
+import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -26,7 +27,7 @@ public class Account extends Person {
 
     private String domain;
     private boolean isEncrypted;
-
+   
     public static class Builder  {
         private Integer id;
         private String givenname;

@@ -11,7 +11,6 @@ import be.wolkmaan.klimtoren.application.builder.Resource;
 import be.wolkmaan.klimtoren.heart.enums.Kind;
 import static be.wolkmaan.klimtoren.heart.model.tables.Eventlog.EVENTLOG;
 import static be.wolkmaan.klimtoren.heart.model.tables.Parties.PARTIES;
-import static be.wolkmaan.klimtoren.heart.model.tables.Persons.PERSONS;
 import static be.wolkmaan.klimtoren.heart.model.tables.Resources.RESOURCES;
 import be.wolkmaan.klimtoren.heart.model.tables.records.EventlogRecord;
 import be.wolkmaan.klimtoren.mapper.Mapper;
@@ -20,7 +19,6 @@ import java.util.stream.Stream;
 import org.jooq.DSLContext;
 import org.jooq.Record9;
 import org.jooq.SelectJoinStep;
-import org.jooq.SelectSelectStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

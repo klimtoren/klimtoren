@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+
+    <!--
+        when the above bean ('messenger') is instantiated, this custom
+        BeanPostProcessor implementation will output the fact to the system console
+     -->
+    <!--bean id="beanPostProcessor" class="com.springbook.InstantiationTracingBeanPostProcessor" /-->
+
+
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+
+    <!--bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"
+          p:location="/WEB-INF/jdbc.properties" />
+    
+    <bean id="dataSource"
+          class="org.springframework.jdbc.datasource.DriverManagerDataSource"
+          p:driverClassName="${jdbc.driverClassName}"
+          p:url="${jdbc.url}"
+          p:username="${jdbc.username}"
+          p:password="${jdbc.password}" /-->
+    
+    <!-- ADD PERSISTENCE SUPPORT HERE (jpa, hibernate, etc) -->
+
+    <!-- Sample RDBMS data source that would exist in any application - not Shiro related. -->
+    <bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource">
+        <property name="driverClassName" value="org.postgresql.Driver"/>
+        <property name="url" value="jdbc:postgresql://localhost/klimtoren"/>
+        <property name="username" value="postgres"/>
+        <property name="password" value="urlike298" />
+    </bean>
+    <!-- Populates the sample database with sample users and roles. -->
+    <bean id="bootstrapDataPopulator" class="my.samples.shiro.spring.BootstrapDataPopulator">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- Simulated business-tier "Manager", not Shiro related, just an example -->
+    <bean id="sampleManager" class="my.samples.shiro.spring.DefaultSampleManager">
+     <property name="ehCacheManager" ref="cacheManager"/>
+    </bean>
+
+    <!-- =========================================================
+         Shiro Core Components - Not Spring Specific
+         ========================================================= -->
+    <!-- Shiro's main business-tier object for web-enabled applications
+         (use DefaultSecurityManager instead when there is no web environment)-->
+    
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="file:${webapp.root}/WEB-INF/ehcache.xml"/>
+    </bean>
+    <!--bean id="cachingSessionDAO" class="org.apache.shiro.session.mgt.eis.CachingSessionDAO" abstract="true">
+        <property name="activeSessionsCacheName" value="activeDataCache"/>
+    </bean-->
+    
+    <!-- Used by the SecurityManager to access security data (users, roles, etc).
+         Many other realm implementations can be used too (PropertiesRealm,
+         LdapRealm, etc. -->
+    <bean id="jdbcRealm" class="be.wolkmaan.klimtoren.admin.WebRealm">
+        <property name="cacheManager" ref="cacheManager"/>
+        <property name="authorizationCacheName" value="realmsCache"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="credentialsMatcher">
+            <!-- The 'bootstrapDataPopulator' Sha256 hashes the password
+                 (using the username as the salt) then base64 encodes it: -->
+            <bean class="org.apache.shiro.authc.credential.Sha256CredentialsMatcher">
+                <!-- true means hex encoded, false means base64 encoded -->
+                <property name="storedCredentialsHexEncoded" value="false"/>
+                <!-- We salt the password using the username, the most common practice: -->
+                <property name="hashSalted" value="true"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!--bean id="securityManager" class="org.apache.shiro.web.DefaultWebSecurityManager"-->
+    <bean id="securityManager" class="be.wolkmaan.klimtoren.admin.shiro.SecurityManager">
+        <property name="cacheManager" ref="cacheManager" />
+        <!-- Single realm app.  If you have multiple realms, use the 'realms' property instead. -->
+        <property name="realm" ref="jdbcRealm" />
+        <property name="sessionMode" value="native" />
+        <!--property name="sessionMode" value="http"/-->
+        <property name="activeSessionsCacheName" value="activeDataCache" />
+    </bean>
+
+    
+
+    <!-- =========================================================
+         Shiro Spring-specific integration
+         ========================================================= -->
+    <!-- Post processor that automatically invokes init() and destroy() methods
+         for Spring-configured Shiro objects so you don't have to
+         1) specify an init-method and destroy-method attributes for every bean
+            definition and
+         2) even know which Shiro objects require these methods to be
+            called. -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+    <!-- Enable Shiro Annotations for Spring-configured beans.  Only run after
+         the lifecycleBeanProcessor has run: -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+    
+</beans>

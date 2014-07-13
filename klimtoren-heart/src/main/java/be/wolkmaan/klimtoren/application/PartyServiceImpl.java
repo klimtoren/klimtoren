@@ -25,26 +25,25 @@ import be.wolkmaan.klimtoren.mapper.Mapper;
 import com.google.common.base.Strings;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.jooq.DSLContext;
-import org.jooq.Record;
 import org.jooq.Record4;
 import org.jooq.Record6;
+import org.jooq.Record7;
 import org.jooq.Record8;
+import org.jooq.Record9;
 import org.jooq.SelectOnConditionStep;
 import org.jooq.SelectSelectStep;
-import org.jooq.exception.DataTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 /**
  *
  * @author karl
  */
-@Service("partyService")
+@Component(value="partyService")
 public class PartyServiceImpl implements PartyService {
 
     @Autowired
@@ -182,13 +181,12 @@ public class PartyServiceImpl implements PartyService {
      ----------------------------------------*/
     @Override
     public Account getAccountByUsername(String username) {
-        return selectPersons()
+        return selectAccounts()
                 .join(AUTHENTICATION)
                 .on(AUTHENTICATION.ID.equal(PARTIES.ID))
                 .where(AUTHENTICATION.USERNAME.lower().equal(username.toLowerCase()))
                 .fetchOne()
-                .map(p -> mapAccount(p));
-        //TODO !!!!!! map Person::forParty.givenname -> Person as Party 
+                .map(per -> Mapper.getInstance().map(per, Account.class));
     }
 
     /*----------------------------------------
@@ -217,7 +215,7 @@ public class PartyServiceImpl implements PartyService {
                 .where(AUTHENTICATION.USERNAME.lower().equal(username.toLowerCase()))
                 .fetchOne();
 
-        Party authParty = mapParty(auth);
+        Party authParty = Mapper.getInstance().map(auth, Party.class);
 
         if (auth != null) {
             granted = encryptor.checkPassword(password, auth.getPassword()) && !auth.getIslocked();
@@ -333,7 +331,7 @@ public class PartyServiceImpl implements PartyService {
                 .setId(party.getId())
                 .store();
 
-        return mapOrg(party);
+        return Mapper.getInstance().map(party, Organization.class);
     }
 
     /*----------------------------------------
@@ -358,9 +356,20 @@ public class PartyServiceImpl implements PartyService {
     /* ++++++++++++++++++++++++++++++++++++++++
      + PRIVATE SELECT STEPS 
      +++++++++++++++++++++++++++++++++++++++ */
-    private SelectOnConditionStep<Record6<Integer, String, String, String, Kind, Gender>> selectPersons() {
+    private SelectOnConditionStep<Record7<Integer, String, String, String, Kind, Gender, String>> selectPersons() {
         return create.select(PARTIES.ID, FULLNAMES.GIVENNAME, FULLNAMES.SURNAME,
-                FULLNAMES.MIDDLENAME, PARTIES.KIND, PERSONS.GENDER)
+                FULLNAMES.MIDDLENAME, PARTIES.KIND, PERSONS.GENDER, PARTIES.DISPLAY_NAME)
+                .from(PARTIES)
+                .join(PERSONS)
+                .on(PERSONS.ID.equal(PARTIES.ID))
+                .leftOuterJoin(FULLNAMES)
+                .on(FULLNAMES.FORPARTY.equal(PARTIES.ID));
+    }
+    
+
+    private SelectOnConditionStep<Record7<Integer, String, String, String, Kind, Gender, String>> selectDistinctPersons() {
+        return create.selectDistinct(PARTIES.ID, FULLNAMES.GIVENNAME, FULLNAMES.SURNAME,
+                FULLNAMES.MIDDLENAME, PARTIES.KIND, PERSONS.GENDER, PARTIES.DISPLAY_NAME)
                 .from(PARTIES)
                 .join(PERSONS)
                 .on(PERSONS.ID.equal(PARTIES.ID))
@@ -368,18 +377,8 @@ public class PartyServiceImpl implements PartyService {
                 .on(FULLNAMES.FORPARTY.equal(PARTIES.ID));
     }
 
-    private SelectOnConditionStep<Record6<Integer, String, String, String, Kind, Gender>> selectDistinctPersons() {
-        return create.selectDistinct(PARTIES.ID, FULLNAMES.GIVENNAME, FULLNAMES.SURNAME,
-                FULLNAMES.MIDDLENAME, PARTIES.KIND, PERSONS.GENDER)
-                .from(PARTIES)
-                .join(PERSONS)
-                .on(PERSONS.ID.equal(PARTIES.ID))
-                .leftOuterJoin(FULLNAMES)
-                .on(FULLNAMES.FORPARTY.equal(PARTIES.ID));
-    }
-
-    private SelectOnConditionStep<Record8<Integer, String, String, String, Kind, Gender, String, Boolean>> selectAccounts() {
-        return create.selectDistinct(PARTIES.ID, FULLNAMES.GIVENNAME, FULLNAMES.SURNAME,
+    private SelectOnConditionStep<Record9<Integer, String, String, String, String, Kind, Gender, String, Boolean>> selectAccounts() {
+        return create.selectDistinct(PARTIES.ID, PARTIES.DISPLAY_NAME, FULLNAMES.GIVENNAME, FULLNAMES.SURNAME,
                 FULLNAMES.MIDDLENAME, PARTIES.KIND, PERSONS.GENDER,
                 AUTHENTICATION.USERNAME, AUTHENTICATION.ISLOCKED)
                 .from(PARTIES)
@@ -389,49 +388,6 @@ public class PartyServiceImpl implements PartyService {
                 .on(AUTHENTICATION.ID.equal(PARTIES.ID))
                 .leftOuterJoin(FULLNAMES)
                 .on(FULLNAMES.FORPARTY.equal(PARTIES.ID));
-    }
-
-    /* ++++++++++++++++++++++++++++++++++++++++
-     + MAPPINGS 
-     +++++++++++++++++++++++++++++++++++++++ */
-    private static Organization mapOrg(Record o) throws DataTypeException, IllegalArgumentException {
-        return new Organization.Builder()
-                .id(o.getValue("id", Integer.class))
-                .displayName(o.getValue("displayname", String.class))
-                .descriptiveInformation(o.getValue("descriptiveinformation", String.class))
-                .kind(o.getValue("kind", Kind.class))
-                .build();
-    }
-
-    private static Party mapParty(Record per) {
-        return new Party.Builder()
-                .id(per.getValue("id", Integer.class))
-                .build();
-    }
-
-    private static Person mapPerson(Record per) throws DataTypeException, IllegalArgumentException {
-        return new Person.Builder()
-                .id(per.getValue("id", Integer.class))
-                .gender(per.getValue("gender", Gender.class))
-                .givenname(per.getValue("givenname", String.class))
-                .surname(per.getValue("surname", String.class))
-                .kind(per.getValue("kind", Kind.class))
-                .build();
-    }
-
-    private static Account mapAccount(Record a) {
-        Account.Builder builder = new Account.Builder()
-                .id(a.getValue("id", Integer.class))
-                .gender(a.getValue("gender", Gender.class))
-                .givenname(a.getValue("givenname", String.class))
-                .surname(a.getValue("surname", String.class))
-                .kind(a.getValue("kind", Kind.class))
-                .username(a.getValue("username", String.class));
-        if (a.field("password") != null) {
-            builder.password(a.getValue("password", String.class), true);
-        }
-
-        return builder.build();
     }
 
     /* ++++++++++++++++++++++++++++++++++++++++

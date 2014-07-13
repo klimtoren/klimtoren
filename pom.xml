@@ -9,18 +9,20 @@
   
     <modules>
         <module>klimtoren-parent-ear</module>
-        <module>klimtoren-cms</module>
         <module>klimtoren-heart</module>
         <module>klimtoren-client</module>
-    </modules>
+        <module>klimtoren-cms</module>
+    <module>klimtoren-admin</module>
+  </modules>
   
     <properties>
         <spring.version>4.0.4.RELEASE</spring.version>
+        <spring.security.version>3.2.4.RELEASE</spring.security.version>
         <hibernate.version>4.3.5.Final</hibernate.version>
         <zk.version>7.0.1</zk.version>
         <commons.logging.version>1.1.3</commons.logging.version>
         <commons.validator.version>1.4.0</commons.validator.version>
-        <logback.version>1.0.7</logback.version>
+        <logback.version>1.1.2</logback.version>
         <slf4j.version>1.7.0</slf4j.version>
         <cglib.version>2.2.2</cglib.version>
         <javaee.api.version>7.0</javaee.api.version>
@@ -142,6 +144,22 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-websocket</artifactId>
                 <version>${spring.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-config</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-taglibs</artifactId>
+                <version>${spring.security.version}</version>
             </dependency>
             
             <!-- HIBERNATE -->
@@ -373,7 +391,22 @@
                 <version>${project.version}</version>
             </dependency>
             
-            
+            <!-- SHIRO -->
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-core</artifactId>
+                <version>1.2.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-web</artifactId>
+                <version>1.2.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-spring</artifactId>
+                <version>1.2.3</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
